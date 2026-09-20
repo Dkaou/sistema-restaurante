@@ -15,7 +15,7 @@
 
 Consulta el **Plan de Implementación** completo en la página del proyecto:
 
-👉 **[Ver documentación](https://TU-USUARIO.github.io/proyecto-restaurante/)**
+👉 **[Ver documentación](https://dkaou.github.io/sistema-restaurante/)**
 
 *(Reemplaza `TU-USUARIO` con tu nombre de usuario de GitHub)*
 
