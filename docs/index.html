@@ -1,0 +1,1749 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan de Implementación — Sistema de Gestión de Restaurante</title>
+    <meta name="description" content="Plan de implementación para el sistema de gestión de restaurante con Spring Boot, Angular, MySQL y Spring Security.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           CSS CUSTOM PROPERTIES
+           ============================================ */
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111827;
+            --bg-card: #1a2035;
+            --bg-card-hover: #1e2744;
+            --bg-code: #0d1117;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-cyan: #06b6d4;
+            --accent-emerald: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-rose: #f43f5e;
+            --accent-orange: #f97316;
+            --gradient-primary: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            --gradient-hero: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            --gradient-card: linear-gradient(145deg, rgba(59,130,246,0.08), rgba(139,92,246,0.08));
+            --border-color: rgba(148, 163, 184, 0.1);
+            --border-glow: rgba(59, 130, 246, 0.3);
+            --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3);
+            --shadow-glow: 0 0 30px rgba(59, 130, 246, 0.15);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+        }
+
+        /* ============================================
+           RESET & BASE
+           ============================================ */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 80px;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        ::selection {
+            background: rgba(59, 130, 246, 0.3);
+            color: #fff;
+        }
+
+        /* ============================================
+           ANIMATED BACKGROUND
+           ============================================ */
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background-image:
+                linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+        }
+
+        .bg-glow-1, .bg-glow-2 {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            pointer-events: none;
+            z-index: 0;
+            animation: float 15s ease-in-out infinite;
+        }
+
+        .bg-glow-1 {
+            width: 600px;
+            height: 600px;
+            background: rgba(59, 130, 246, 0.08);
+            top: -200px;
+            right: -200px;
+        }
+
+        .bg-glow-2 {
+            width: 500px;
+            height: 500px;
+            background: rgba(139, 92, 246, 0.06);
+            bottom: -150px;
+            left: -150px;
+            animation-delay: -7s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -20px) scale(1.05); }
+            66% { transform: translate(-20px, 15px) scale(0.95); }
+        }
+
+        /* ============================================
+           NAVBAR
+           ============================================ */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(10, 14, 26, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            background: rgba(10, 14, 26, 0.95);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .navbar-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .navbar-brand .icon {
+            font-size: 1.5rem;
+        }
+
+        .navbar-links {
+            display: flex;
+            gap: 4px;
+            list-style: none;
+        }
+
+        .navbar-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .navbar-links a:hover {
+            color: var(--text-primary);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        /* ============================================
+           HERO SECTION
+           ============================================ */
+        .hero {
+            position: relative;
+            padding: 140px 24px 80px;
+            text-align: center;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--gradient-hero);
+            z-index: -1;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--accent-blue);
+            margin-bottom: 24px;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .hero-badge .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-emerald);
+            border-radius: 50%;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        .hero h1 {
+            font-size: clamp(2.2rem, 5vw, 3.8rem);
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            margin-bottom: 16px;
+            animation: fadeInUp 0.6s ease 0.1s both;
+        }
+
+        .hero h1 .gradient-text {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            max-width: 650px;
+            margin: 0 auto 36px;
+            animation: fadeInUp 0.6s ease 0.2s both;
+        }
+
+        .hero-stack {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            animation: fadeInUp 0.6s ease 0.3s both;
+        }
+
+        .stack-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .stack-tag:hover {
+            border-color: var(--border-glow);
+            background: rgba(59, 130, 246, 0.08);
+            color: var(--text-primary);
+            transform: translateY(-2px);
+        }
+
+        .stack-tag .emoji {
+            font-size: 1rem;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ============================================
+           MAIN CONTENT
+           ============================================ */
+        .main-content {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px 80px;
+        }
+
+        /* ============================================
+           SECTION
+           ============================================ */
+        .section {
+            margin-bottom: 64px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section-icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-md);
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+
+        .section-icon.blue { background: rgba(59, 130, 246, 0.12); }
+        .section-icon.purple { background: rgba(139, 92, 246, 0.12); }
+        .section-icon.cyan { background: rgba(6, 182, 212, 0.12); }
+        .section-icon.emerald { background: rgba(16, 185, 129, 0.12); }
+        .section-icon.amber { background: rgba(245, 158, 11, 0.12); }
+        .section-icon.rose { background: rgba(244, 63, 94, 0.12); }
+
+        .section-header h2 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        /* ============================================
+           CARDS
+           ============================================ */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-primary);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--border-glow);
+            box-shadow: var(--shadow-glow);
+            transform: translateY(-4px);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 14px;
+            display: block;
+        }
+
+        .card h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .card ul {
+            list-style: none;
+            margin-top: 12px;
+        }
+
+        .card ul li {
+            padding: 5px 0;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .card ul li::before {
+            content: '›';
+            color: var(--accent-blue);
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        /* ============================================
+           STACK TABLE
+           ============================================ */
+        .table-container {
+            overflow-x: auto;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: rgba(59, 130, 246, 0.08);
+        }
+
+        th {
+            text-align: left;
+            padding: 14px 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--accent-blue);
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 13px 20px;
+            font-size: 0.9rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        tr:last-child td { border-bottom: none; }
+
+        tr:hover td {
+            background: rgba(59, 130, 246, 0.03);
+        }
+
+        td:first-child {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .method-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            letter-spacing: 0.03em;
+        }
+
+        .method-get { background: rgba(16, 185, 129, 0.12); color: var(--accent-emerald); }
+        .method-post { background: rgba(59, 130, 246, 0.12); color: var(--accent-blue); }
+        .method-put { background: rgba(245, 158, 11, 0.12); color: var(--accent-amber); }
+        .method-patch { background: rgba(139, 92, 246, 0.12); color: var(--accent-purple); }
+        .method-delete { background: rgba(244, 63, 94, 0.12); color: var(--accent-rose); }
+
+        .role-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            margin: 1px 2px;
+        }
+
+        .role-public { background: rgba(16, 185, 129, 0.12); color: var(--accent-emerald); }
+        .role-auth { background: rgba(59, 130, 246, 0.12); color: var(--accent-blue); }
+        .role-admin { background: rgba(244, 63, 94, 0.12); color: var(--accent-rose); }
+        .role-mesero { background: rgba(245, 158, 11, 0.12); color: var(--accent-amber); }
+        .role-cocinero { background: rgba(249, 115, 22, 0.12); color: var(--accent-orange); }
+        .role-cajero { background: rgba(139, 92, 246, 0.12); color: var(--accent-purple); }
+
+        .endpoint-path {
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            color: var(--accent-cyan);
+        }
+
+        /* ============================================
+           FILE TREE
+           ============================================ */
+        .file-tree {
+            background: var(--bg-code);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            overflow-x: auto;
+        }
+
+        .file-tree pre {
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+
+        .file-tree .folder { color: var(--accent-blue); font-weight: 600; }
+        .file-tree .file-java { color: var(--accent-orange); }
+        .file-tree .file-ts { color: var(--accent-cyan); }
+        .file-tree .file-config { color: var(--accent-emerald); }
+        .file-tree .file-html { color: var(--accent-rose); }
+
+        /* ============================================
+           ER DIAGRAM (CSS-BASED)
+           ============================================ */
+        .er-diagram {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .entity-card {
+            background: var(--bg-code);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .entity-card:hover {
+            border-color: var(--border-glow);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .entity-header {
+            padding: 12px 18px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .entity-header.blue { background: rgba(59, 130, 246, 0.1); color: var(--accent-blue); }
+        .entity-header.purple { background: rgba(139, 92, 246, 0.1); color: var(--accent-purple); }
+        .entity-header.cyan { background: rgba(6, 182, 212, 0.1); color: var(--accent-cyan); }
+        .entity-header.emerald { background: rgba(16, 185, 129, 0.1); color: var(--accent-emerald); }
+        .entity-header.amber { background: rgba(245, 158, 11, 0.1); color: var(--accent-amber); }
+        .entity-header.rose { background: rgba(244, 63, 94, 0.1); color: var(--accent-rose); }
+
+        .entity-fields {
+            padding: 8px 0;
+        }
+
+        .entity-field {
+            padding: 6px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.82rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.05);
+        }
+
+        .entity-field:last-child { border-bottom: none; }
+
+        .field-name {
+            font-family: var(--font-mono);
+            color: var(--text-primary);
+        }
+
+        .field-type {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .field-badge {
+            display: inline-block;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            margin-left: 6px;
+        }
+
+        .badge-pk { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); }
+        .badge-fk { background: rgba(139, 92, 246, 0.15); color: var(--accent-purple); }
+        .badge-uk { background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); }
+
+        /* ============================================
+           TIMELINE (PHASES)
+           ============================================ */
+        .timeline {
+            position: relative;
+            padding-left: 40px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, var(--accent-blue), var(--accent-purple), var(--accent-emerald), var(--accent-amber));
+            border-radius: 2px;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 36px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -29px;
+            top: 6px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 3px solid;
+            background: var(--bg-primary);
+        }
+
+        .timeline-item:nth-child(1)::before { border-color: var(--accent-blue); box-shadow: 0 0 12px rgba(59, 130, 246, 0.4); }
+        .timeline-item:nth-child(2)::before { border-color: var(--accent-purple); box-shadow: 0 0 12px rgba(139, 92, 246, 0.4); }
+        .timeline-item:nth-child(3)::before { border-color: var(--accent-emerald); box-shadow: 0 0 12px rgba(16, 185, 129, 0.4); }
+        .timeline-item:nth-child(4)::before { border-color: var(--accent-amber); box-shadow: 0 0 12px rgba(245, 158, 11, 0.4); }
+
+        .timeline-phase {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 6px;
+        }
+
+        .timeline-item:nth-child(1) .timeline-phase { color: var(--accent-blue); }
+        .timeline-item:nth-child(2) .timeline-phase { color: var(--accent-purple); }
+        .timeline-item:nth-child(3) .timeline-phase { color: var(--accent-emerald); }
+        .timeline-item:nth-child(4) .timeline-phase { color: var(--accent-amber); }
+
+        .timeline-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .timeline-tasks {
+            list-style: none;
+            display: grid;
+            gap: 6px;
+        }
+
+        .timeline-tasks li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: var(--radius-sm);
+            border-left: 2px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+
+        .timeline-tasks li:hover {
+            background: rgba(59, 130, 246, 0.05);
+            border-left-color: var(--accent-blue);
+            color: var(--text-primary);
+        }
+
+        .task-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            font-size: 0.7rem;
+            font-weight: 700;
+            background: rgba(59, 130, 246, 0.12);
+            color: var(--accent-blue);
+            flex-shrink: 0;
+        }
+
+        /* ============================================
+           SECURITY FLOW
+           ============================================ */
+        .flow-container {
+            background: var(--bg-code);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            overflow-x: auto;
+        }
+
+        .flow-steps {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .flow-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .flow-step-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .flow-step:hover .flow-step-icon {
+            transform: scale(1.1);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .flow-step-icon.blue-bg { background: rgba(59, 130, 246, 0.1); }
+        .flow-step-icon.emerald-bg { background: rgba(16, 185, 129, 0.1); }
+        .flow-step-icon.purple-bg { background: rgba(139, 92, 246, 0.1); }
+        .flow-step-icon.amber-bg { background: rgba(245, 158, 11, 0.1); }
+
+        .flow-step-label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            max-width: 100px;
+        }
+
+        .flow-arrow {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        /* ============================================
+           PREREQUISITES ALERT
+           ============================================ */
+        .alert {
+            padding: 24px 28px;
+            border-radius: var(--radius-lg);
+            border-left: 4px solid;
+            margin-bottom: 24px;
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.06);
+            border-color: var(--accent-amber);
+        }
+
+        .alert-info {
+            background: rgba(59, 130, 246, 0.06);
+            border-color: var(--accent-blue);
+        }
+
+        .alert h4 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            font-size: 1rem;
+        }
+
+        .alert ul {
+            list-style: none;
+        }
+
+        .alert ul li {
+            padding: 4px 0;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .alert ul li code {
+            background: rgba(255, 255, 255, 0.06);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            color: var(--accent-cyan);
+        }
+
+        /* ============================================
+           TEAM MEMBERS SECTION
+           ============================================ */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .team-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .team-card:hover {
+            border-color: var(--border-glow);
+            transform: translateY(-2px);
+        }
+
+        .team-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #fff;
+            margin: 0 auto 12px;
+        }
+
+        .team-role {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent-blue);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+        .footer {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 32px 24px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .footer a {
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 768px) {
+            .navbar-links { display: none; }
+            .mobile-menu-btn { display: block; }
+
+            .navbar-links.active {
+                display: flex;
+                flex-direction: column;
+                position: absolute;
+                top: 64px;
+                left: 0;
+                right: 0;
+                background: rgba(10, 14, 26, 0.98);
+                backdrop-filter: blur(20px);
+                padding: 16px;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .er-diagram {
+                grid-template-columns: 1fr;
+            }
+
+            .flow-steps {
+                flex-direction: column;
+            }
+
+            .flow-arrow {
+                transform: rotate(90deg);
+            }
+
+            .hero {
+                padding: 120px 16px 60px;
+            }
+
+            .section-header h2 {
+                font-size: 1.3rem;
+            }
+        }
+
+        /* ============================================
+           SCROLL ANIMATIONS
+           ============================================ */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* API Subsection */
+        .api-group {
+            margin-bottom: 28px;
+        }
+
+        .api-group-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-primary);
+        }
+
+        .api-group-title code {
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            background: rgba(6, 182, 212, 0.1);
+            padding: 3px 10px;
+            border-radius: 6px;
+            color: var(--accent-cyan);
+        }
+
+        /* Relations Legend */
+        .relations-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-top: 20px;
+        }
+
+        .relation-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+        }
+
+        .relation-arrow {
+            color: var(--accent-purple);
+            font-weight: 700;
+            font-size: 1rem;
+            min-width: 24px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background Effects -->
+    <div class="bg-grid"></div>
+    <div class="bg-glow-1"></div>
+    <div class="bg-glow-2"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="navbar-inner">
+            <a href="#" class="navbar-brand">
+                <span class="icon">🍽️</span>
+                RestaurantApp
+            </a>
+            <ul class="navbar-links" id="navLinks">
+                <li><a href="#stack">Stack</a></li>
+                <li><a href="#modulos">Módulos</a></li>
+                <li><a href="#estructura">Estructura</a></li>
+                <li><a href="#modelo">Modelo ER</a></li>
+                <li><a href="#api">API REST</a></li>
+                <li><a href="#seguridad">Seguridad</a></li>
+                <li><a href="#fases">Fases</a></li>
+                <li><a href="#equipo">Equipo</a></li>
+            </ul>
+            <button class="mobile-menu-btn" onclick="toggleMenu()" aria-label="Menú">☰</button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-badge">
+            <span class="dot"></span>
+            Proyecto en Desarrollo
+        </div>
+        <h1>
+            Sistema de Gestión de<br>
+            <span class="gradient-text">Restaurante</span>
+        </h1>
+        <p class="hero-subtitle">
+            Plataforma full-stack para gestión integral de restaurante: menú, pedidos, mesas, 
+            usuarios y reportes. Construido con tecnologías empresariales de última generación.
+        </p>
+        <div class="hero-stack">
+            <span class="stack-tag"><span class="emoji">☕</span> Java 17+</span>
+            <span class="stack-tag"><span class="emoji">🍃</span> Spring Boot 3</span>
+            <span class="stack-tag"><span class="emoji">🔒</span> Spring Security</span>
+            <span class="stack-tag"><span class="emoji">🅰️</span> Angular 18+</span>
+            <span class="stack-tag"><span class="emoji">📘</span> TypeScript</span>
+            <span class="stack-tag"><span class="emoji">🐬</span> MySQL 8</span>
+            <span class="stack-tag"><span class="emoji">🔑</span> JWT / OAuth2</span>
+            <span class="stack-tag"><span class="emoji">🐱</span> Tomcat</span>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Stack Tecnológico -->
+        <section class="section reveal" id="stack">
+            <div class="section-header">
+                <div class="section-icon blue">⚡</div>
+                <h2>Stack Tecnológico</h2>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Capa</th>
+                            <th>Tecnología</th>
+                            <th>Versión</th>
+                            <th>Propósito</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>☕ Backend</td>
+                            <td>Spring Boot</td>
+                            <td>3.3+</td>
+                            <td>Framework principal del servidor</td>
+                        </tr>
+                        <tr>
+                            <td>🗃️ Persistencia</td>
+                            <td>Spring Data JPA + Hibernate</td>
+                            <td>6.x</td>
+                            <td>Mapeo objeto-relacional y acceso a datos</td>
+                        </tr>
+                        <tr>
+                            <td>🔐 Seguridad</td>
+                            <td>Spring Security + OAuth2 + JWT</td>
+                            <td>6.x</td>
+                            <td>Autenticación, autorización y tokens</td>
+                        </tr>
+                        <tr>
+                            <td>🖥️ Frontend</td>
+                            <td>Angular + TypeScript</td>
+                            <td>18+</td>
+                            <td>SPA con componentes standalone</td>
+                        </tr>
+                        <tr>
+                            <td>🎨 UI Library</td>
+                            <td>Angular Material</td>
+                            <td>18+</td>
+                            <td>Componentes visuales Material Design</td>
+                        </tr>
+                        <tr>
+                            <td>🐬 Base de Datos</td>
+                            <td>MySQL</td>
+                            <td>8.x</td>
+                            <td>Almacenamiento relacional</td>
+                        </tr>
+                        <tr>
+                            <td>🐱 Servidor</td>
+                            <td>Apache Tomcat (embebido)</td>
+                            <td>10.x</td>
+                            <td>Contenedor de servlets</td>
+                        </tr>
+                        <tr>
+                            <td>🔨 Build Backend</td>
+                            <td>Maven</td>
+                            <td>3.9+</td>
+                            <td>Gestión de dependencias y build</td>
+                        </tr>
+                        <tr>
+                            <td>📦 Build Frontend</td>
+                            <td>Angular CLI + npm</td>
+                            <td>18+</td>
+                            <td>Tooling y empaquetado del frontend</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Módulos del Sistema -->
+        <section class="section reveal" id="modulos">
+            <div class="section-header">
+                <div class="section-icon purple">📦</div>
+                <h2>Módulos del Sistema</h2>
+            </div>
+            <div class="cards-grid">
+                <div class="card">
+                    <span class="card-icon">🔐</span>
+                    <h3>Autenticación y Autorización</h3>
+                    <p>Sistema completo de seguridad basado en JWT con soporte para roles.</p>
+                    <ul>
+                        <li>Login y registro con JWT</li>
+                        <li>Roles: ADMIN, MESERO, COCINERO, CAJERO</li>
+                        <li>Protección de rutas y endpoints</li>
+                        <li>Refresh tokens automáticos</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <span class="card-icon">🍽️</span>
+                    <h3>Gestión de Menú</h3>
+                    <p>Administración completa del menú del restaurante.</p>
+                    <ul>
+                        <li>CRUD de categorías (Entradas, Fuertes, Bebidas...)</li>
+                        <li>CRUD de platos con descripción e imagen</li>
+                        <li>Gestión de precios y disponibilidad</li>
+                        <li>Activar/desactivar platos por temporada</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <span class="card-icon">📋</span>
+                    <h3>Gestión de Pedidos</h3>
+                    <p>Control del flujo completo de pedidos en el restaurante.</p>
+                    <ul>
+                        <li>Crear pedido vinculado a mesa y mesero</li>
+                        <li>Agregar/quitar ítems con notas especiales</li>
+                        <li>Estados: PENDIENTE → EN_PREPARACIÓN → LISTO → ENTREGADO → PAGADO</li>
+                        <li>Vista de cocina con pedidos en tiempo real</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <span class="card-icon">🪑</span>
+                    <h3>Gestión de Mesas</h3>
+                    <p>Organización y monitoreo del estado de las mesas.</p>
+                    <ul>
+                        <li>CRUD de mesas con capacidad y ubicación</li>
+                        <li>Estados: DISPONIBLE, OCUPADA, RESERVADA</li>
+                        <li>Mapa visual interactivo del restaurante</li>
+                        <li>Asignación automática de mesas</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <span class="card-icon">👥</span>
+                    <h3>Gestión de Usuarios</h3>
+                    <p>Administración de empleados y sus permisos.</p>
+                    <ul>
+                        <li>CRUD de empleados del restaurante</li>
+                        <li>Asignación y gestión de roles</li>
+                        <li>Perfil de usuario personalizado</li>
+                        <li>Activación/desactivación de cuentas</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <span class="card-icon">📊</span>
+                    <h3>Dashboard y Reportes</h3>
+                    <p>Visualización de métricas clave del negocio.</p>
+                    <ul>
+                        <li>Ventas del día, semana y mes</li>
+                        <li>Ranking de platos más vendidos</li>
+                        <li>Estadísticas de ocupación de mesas</li>
+                        <li>Gráficos interactivos con Chart.js</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Estructura del Proyecto -->
+        <section class="section reveal" id="estructura">
+            <div class="section-header">
+                <div class="section-icon cyan">📁</div>
+                <h2>Estructura del Proyecto</h2>
+            </div>
+            <div class="cards-grid" style="grid-template-columns: 1fr 1fr;">
+                <div class="file-tree">
+                    <h3 style="color: var(--accent-orange); margin-bottom: 16px; font-size: 1rem;">⚙️ Backend — Spring Boot</h3>
+                    <pre>
+<span class="folder">backend/</span>
+├── <span class="file-config">pom.xml</span>
+└── <span class="folder">src/main/java/com/restaurante/</span>
+    ├── <span class="file-java">RestauranteApplication.java</span>
+    ├── <span class="folder">config/</span>
+    │   ├── <span class="file-java">SecurityConfig.java</span>
+    │   ├── <span class="file-java">JwtService.java</span>
+    │   ├── <span class="file-java">JwtAuthenticationFilter.java</span>
+    │   └── <span class="file-java">CorsConfig.java</span>
+    ├── <span class="folder">auth/</span>
+    │   ├── <span class="file-java">AuthController.java</span>
+    │   ├── <span class="file-java">AuthService.java</span>
+    │   └── <span class="file-java">AuthRequest.java</span>
+    ├── <span class="folder">usuario/</span>
+    │   ├── <span class="file-java">Usuario.java</span>
+    │   ├── <span class="file-java">UsuarioController.java</span>
+    │   ├── <span class="file-java">UsuarioService.java</span>
+    │   └── <span class="file-java">UsuarioRepository.java</span>
+    ├── <span class="folder">categoria/</span>
+    ├── <span class="folder">plato/</span>
+    ├── <span class="folder">mesa/</span>
+    ├── <span class="folder">pedido/</span>
+    └── <span class="folder">reporte/</span></pre>
+                </div>
+                <div class="file-tree">
+                    <h3 style="color: var(--accent-cyan); margin-bottom: 16px; font-size: 1rem;">🖥️ Frontend — Angular</h3>
+                    <pre>
+<span class="folder">frontend/</span>
+├── <span class="file-config">angular.json</span>
+├── <span class="file-config">package.json</span>
+├── <span class="file-config">tsconfig.json</span>
+└── <span class="folder">src/app/</span>
+    ├── <span class="file-ts">app.component.ts</span>
+    ├── <span class="file-ts">app.routes.ts</span>
+    ├── <span class="folder">core/</span>
+    │   ├── <span class="folder">services/</span>
+    │   │   ├── <span class="file-ts">auth.service.ts</span>
+    │   │   └── <span class="file-ts">api.service.ts</span>
+    │   ├── <span class="folder">guards/</span>
+    │   │   ├── <span class="file-ts">auth.guard.ts</span>
+    │   │   └── <span class="file-ts">role.guard.ts</span>
+    │   ├── <span class="folder">interceptors/</span>
+    │   │   └── <span class="file-ts">jwt.interceptor.ts</span>
+    │   └── <span class="folder">models/</span>
+    ├── <span class="folder">features/</span>
+    │   ├── <span class="folder">auth/</span> (login, register)
+    │   ├── <span class="folder">dashboard/</span>
+    │   ├── <span class="folder">menu/</span>
+    │   ├── <span class="folder">pedidos/</span>
+    │   ├── <span class="folder">mesas/</span>
+    │   └── <span class="folder">usuarios/</span>
+    └── <span class="folder">shared/</span>
+        └── <span class="folder">components/</span></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Modelo de Datos -->
+        <section class="section reveal" id="modelo">
+            <div class="section-header">
+                <div class="section-icon emerald">🗄️</div>
+                <h2>Modelo de Datos — Entidad Relación</h2>
+            </div>
+            <div class="er-diagram">
+                <div class="entity-card">
+                    <div class="entity-header blue">👤 USUARIO</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="field-name">id <span class="field-badge badge-pk">PK</span></span><span class="field-type">BIGINT</span></div>
+                        <div class="entity-field"><span class="field-name">nombre</span><span class="field-type">VARCHAR</span></div>
+                        <div class="entity-field"><span class="field-name">apellido</span><span class="field-type">VARCHAR</span></div>
+                        <div class="entity-field"><span class="field-name">email <span class="field-badge badge-uk">UK</span></span><span class="field-type">VARCHAR</span></div>
+                        <div class="entity-field"><span class="field-name">password</span><span class="field-type">VARCHAR</span></div>
+                        <div class="entity-field"><span class="field-name">rol</span><span class="field-type">ENUM</span></div>
+                        <div class="entity-field"><span class="field-name">activo</span><span class="field-type">BOOLEAN</span></div>
+                        <div class="entity-field"><span class="field-name">created_at</span><span class="field-type">DATETIME</span></div>
+                    </div>
+                </div>
+                <div class="entity-card">
+                    <div class="entity-header purple">📂 CATEGORIA</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="field-name">id <span class="field-badge badge-pk">PK</span></span><span class="field-type">BIGINT</span></div>
+                        <div class="entity-field"><span class="field-name">nombre <span class="field-badge badge-uk">UK</span></span><span class="field-type">VARCHAR</span></div>
+                        <div class="entity-field"><span class="field-name">descripcion</span><span class="field-type">VARCHAR</span></div>
+                        <div class="entity-field"><span class="field-name">activa</span><span class="field-type">BOOLEAN</span></div>
+                    </div>
+                </div>
+                <div class="entity-card">
+                    <div class="entity-header cyan">🍕 PLATO</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="field-name">id <span class="field-badge badge-pk">PK</span></span><span class="field-type">BIGINT</span></div>
+                        <div class="entity-field"><span class="field-name">nombre</span><span class="field-type">VARCHAR</span></div>
+                        <div class="entity-field"><span class="field-name">descripcion</span><span class="field-type">VARCHAR</span></div>
+                        <div class="entity-field"><span class="field-name">precio</span><span class="field-type">DECIMAL</span></div>
+                        <div class="entity-field"><span class="field-name">imagen_url</span><span class="field-type">VARCHAR</span></div>
+                        <div class="entity-field"><span class="field-name">disponible</span><span class="field-type">BOOLEAN</span></div>
+                        <div class="entity-field"><span class="field-name">categoria_id <span class="field-badge badge-fk">FK</span></span><span class="field-type">BIGINT</span></div>
+                    </div>
+                </div>
+                <div class="entity-card">
+                    <div class="entity-header emerald">🪑 MESA</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="field-name">id <span class="field-badge badge-pk">PK</span></span><span class="field-type">BIGINT</span></div>
+                        <div class="entity-field"><span class="field-name">numero <span class="field-badge badge-uk">UK</span></span><span class="field-type">INT</span></div>
+                        <div class="entity-field"><span class="field-name">capacidad</span><span class="field-type">INT</span></div>
+                        <div class="entity-field"><span class="field-name">ubicacion</span><span class="field-type">VARCHAR</span></div>
+                        <div class="entity-field"><span class="field-name">estado</span><span class="field-type">ENUM</span></div>
+                    </div>
+                </div>
+                <div class="entity-card">
+                    <div class="entity-header amber">📋 PEDIDO</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="field-name">id <span class="field-badge badge-pk">PK</span></span><span class="field-type">BIGINT</span></div>
+                        <div class="entity-field"><span class="field-name">mesa_id <span class="field-badge badge-fk">FK</span></span><span class="field-type">BIGINT</span></div>
+                        <div class="entity-field"><span class="field-name">mesero_id <span class="field-badge badge-fk">FK</span></span><span class="field-type">BIGINT</span></div>
+                        <div class="entity-field"><span class="field-name">estado</span><span class="field-type">ENUM</span></div>
+                        <div class="entity-field"><span class="field-name">total</span><span class="field-type">DECIMAL</span></div>
+                        <div class="entity-field"><span class="field-name">fecha_creacion</span><span class="field-type">DATETIME</span></div>
+                        <div class="entity-field"><span class="field-name">fecha_cierre</span><span class="field-type">DATETIME</span></div>
+                    </div>
+                </div>
+                <div class="entity-card">
+                    <div class="entity-header rose">📝 DETALLE_PEDIDO</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="field-name">id <span class="field-badge badge-pk">PK</span></span><span class="field-type">BIGINT</span></div>
+                        <div class="entity-field"><span class="field-name">pedido_id <span class="field-badge badge-fk">FK</span></span><span class="field-type">BIGINT</span></div>
+                        <div class="entity-field"><span class="field-name">plato_id <span class="field-badge badge-fk">FK</span></span><span class="field-type">BIGINT</span></div>
+                        <div class="entity-field"><span class="field-name">cantidad</span><span class="field-type">INT</span></div>
+                        <div class="entity-field"><span class="field-name">precio_unitario</span><span class="field-type">DECIMAL</span></div>
+                        <div class="entity-field"><span class="field-name">subtotal</span><span class="field-type">DECIMAL</span></div>
+                        <div class="entity-field"><span class="field-name">notas</span><span class="field-type">VARCHAR</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="relations-card">
+                <h4 style="margin-bottom: 12px; font-size: 0.95rem;">🔗 Relaciones</h4>
+                <div class="relation-item">
+                    <span class="relation-arrow">→</span>
+                    <span><strong>CATEGORIA</strong> tiene muchos <strong>PLATOS</strong> (1:N)</span>
+                </div>
+                <div class="relation-item">
+                    <span class="relation-arrow">→</span>
+                    <span><strong>MESA</strong> recibe muchos <strong>PEDIDOS</strong> (1:N)</span>
+                </div>
+                <div class="relation-item">
+                    <span class="relation-arrow">→</span>
+                    <span><strong>USUARIO</strong> (mesero) atiende muchos <strong>PEDIDOS</strong> (1:N)</span>
+                </div>
+                <div class="relation-item">
+                    <span class="relation-arrow">→</span>
+                    <span><strong>PEDIDO</strong> contiene muchos <strong>DETALLE_PEDIDO</strong> (1:N)</span>
+                </div>
+                <div class="relation-item">
+                    <span class="relation-arrow">→</span>
+                    <span><strong>PLATO</strong> está incluido en muchos <strong>DETALLE_PEDIDO</strong> (1:N)</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- API REST -->
+        <section class="section reveal" id="api">
+            <div class="section-header">
+                <div class="section-icon amber">🌐</div>
+                <h2>Endpoints REST API</h2>
+            </div>
+
+            <!-- Auth -->
+            <div class="api-group">
+                <div class="api-group-title">🔐 Autenticación <code>/api/auth</code></div>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Método</th><th>Endpoint</th><th>Descripción</th><th>Acceso</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="method-badge method-post">POST</span></td><td class="endpoint-path">/api/auth/login</td><td>Iniciar sesión</td><td><span class="role-badge role-public">Público</span></td></tr>
+                            <tr><td><span class="method-badge method-post">POST</span></td><td class="endpoint-path">/api/auth/register</td><td>Registrar usuario</td><td><span class="role-badge role-admin">ADMIN</span></td></tr>
+                            <tr><td><span class="method-badge method-post">POST</span></td><td class="endpoint-path">/api/auth/refresh</td><td>Refrescar token</td><td><span class="role-badge role-auth">Autenticado</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Categorias -->
+            <div class="api-group">
+                <div class="api-group-title">📂 Categorías <code>/api/categorias</code></div>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Método</th><th>Endpoint</th><th>Descripción</th><th>Acceso</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="method-badge method-get">GET</span></td><td class="endpoint-path">/api/categorias</td><td>Listar categorías</td><td><span class="role-badge role-auth">Autenticado</span></td></tr>
+                            <tr><td><span class="method-badge method-post">POST</span></td><td class="endpoint-path">/api/categorias</td><td>Crear categoría</td><td><span class="role-badge role-admin">ADMIN</span></td></tr>
+                            <tr><td><span class="method-badge method-put">PUT</span></td><td class="endpoint-path">/api/categorias/{id}</td><td>Actualizar categoría</td><td><span class="role-badge role-admin">ADMIN</span></td></tr>
+                            <tr><td><span class="method-badge method-delete">DELETE</span></td><td class="endpoint-path">/api/categorias/{id}</td><td>Eliminar categoría</td><td><span class="role-badge role-admin">ADMIN</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Platos -->
+            <div class="api-group">
+                <div class="api-group-title">🍕 Platos <code>/api/platos</code></div>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Método</th><th>Endpoint</th><th>Descripción</th><th>Acceso</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="method-badge method-get">GET</span></td><td class="endpoint-path">/api/platos</td><td>Listar platos</td><td><span class="role-badge role-auth">Autenticado</span></td></tr>
+                            <tr><td><span class="method-badge method-get">GET</span></td><td class="endpoint-path">/api/platos/categoria/{id}</td><td>Platos por categoría</td><td><span class="role-badge role-auth">Autenticado</span></td></tr>
+                            <tr><td><span class="method-badge method-post">POST</span></td><td class="endpoint-path">/api/platos</td><td>Crear plato</td><td><span class="role-badge role-admin">ADMIN</span></td></tr>
+                            <tr><td><span class="method-badge method-put">PUT</span></td><td class="endpoint-path">/api/platos/{id}</td><td>Actualizar plato</td><td><span class="role-badge role-admin">ADMIN</span></td></tr>
+                            <tr><td><span class="method-badge method-delete">DELETE</span></td><td class="endpoint-path">/api/platos/{id}</td><td>Eliminar plato</td><td><span class="role-badge role-admin">ADMIN</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Mesas -->
+            <div class="api-group">
+                <div class="api-group-title">🪑 Mesas <code>/api/mesas</code></div>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Método</th><th>Endpoint</th><th>Descripción</th><th>Acceso</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="method-badge method-get">GET</span></td><td class="endpoint-path">/api/mesas</td><td>Listar mesas</td><td><span class="role-badge role-auth">Autenticado</span></td></tr>
+                            <tr><td><span class="method-badge method-post">POST</span></td><td class="endpoint-path">/api/mesas</td><td>Crear mesa</td><td><span class="role-badge role-admin">ADMIN</span></td></tr>
+                            <tr><td><span class="method-badge method-put">PUT</span></td><td class="endpoint-path">/api/mesas/{id}</td><td>Actualizar mesa</td><td><span class="role-badge role-admin">ADMIN</span></td></tr>
+                            <tr><td><span class="method-badge method-patch">PATCH</span></td><td class="endpoint-path">/api/mesas/{id}/estado</td><td>Cambiar estado</td><td><span class="role-badge role-mesero">MESERO</span> <span class="role-badge role-admin">ADMIN</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pedidos -->
+            <div class="api-group">
+                <div class="api-group-title">📋 Pedidos <code>/api/pedidos</code></div>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Método</th><th>Endpoint</th><th>Descripción</th><th>Acceso</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="method-badge method-get">GET</span></td><td class="endpoint-path">/api/pedidos</td><td>Listar pedidos</td><td><span class="role-badge role-auth">Autenticado</span></td></tr>
+                            <tr><td><span class="method-badge method-get">GET</span></td><td class="endpoint-path">/api/pedidos/activos</td><td>Pedidos activos</td><td><span class="role-badge role-cocinero">COCINERO</span> <span class="role-badge role-mesero">MESERO</span></td></tr>
+                            <tr><td><span class="method-badge method-post">POST</span></td><td class="endpoint-path">/api/pedidos</td><td>Crear pedido</td><td><span class="role-badge role-mesero">MESERO</span></td></tr>
+                            <tr><td><span class="method-badge method-put">PUT</span></td><td class="endpoint-path">/api/pedidos/{id}</td><td>Actualizar pedido</td><td><span class="role-badge role-mesero">MESERO</span></td></tr>
+                            <tr><td><span class="method-badge method-patch">PATCH</span></td><td class="endpoint-path">/api/pedidos/{id}/estado</td><td>Cambiar estado</td><td><span class="role-badge role-mesero">MESERO</span> <span class="role-badge role-cocinero">COCINERO</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Usuarios -->
+            <div class="api-group">
+                <div class="api-group-title">👥 Usuarios <code>/api/usuarios</code></div>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Método</th><th>Endpoint</th><th>Descripción</th><th>Acceso</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="method-badge method-get">GET</span></td><td class="endpoint-path">/api/usuarios</td><td>Listar usuarios</td><td><span class="role-badge role-admin">ADMIN</span></td></tr>
+                            <tr><td><span class="method-badge method-get">GET</span></td><td class="endpoint-path">/api/usuarios/{id}</td><td>Obtener usuario</td><td><span class="role-badge role-admin">ADMIN</span></td></tr>
+                            <tr><td><span class="method-badge method-put">PUT</span></td><td class="endpoint-path">/api/usuarios/{id}</td><td>Actualizar usuario</td><td><span class="role-badge role-admin">ADMIN</span></td></tr>
+                            <tr><td><span class="method-badge method-delete">DELETE</span></td><td class="endpoint-path">/api/usuarios/{id}</td><td>Desactivar usuario</td><td><span class="role-badge role-admin">ADMIN</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Reportes -->
+            <div class="api-group">
+                <div class="api-group-title">📊 Reportes <code>/api/reportes</code></div>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Método</th><th>Endpoint</th><th>Descripción</th><th>Acceso</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="method-badge method-get">GET</span></td><td class="endpoint-path">/api/reportes/ventas-dia</td><td>Ventas del día</td><td><span class="role-badge role-admin">ADMIN</span> <span class="role-badge role-cajero">CAJERO</span></td></tr>
+                            <tr><td><span class="method-badge method-get">GET</span></td><td class="endpoint-path">/api/reportes/platos-populares</td><td>Platos más vendidos</td><td><span class="role-badge role-admin">ADMIN</span></td></tr>
+                            <tr><td><span class="method-badge method-get">GET</span></td><td class="endpoint-path">/api/reportes/resumen</td><td>Resumen general</td><td><span class="role-badge role-admin">ADMIN</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Seguridad -->
+        <section class="section reveal" id="seguridad">
+            <div class="section-header">
+                <div class="section-icon rose">🔒</div>
+                <h2>Flujo de Seguridad — JWT Authentication</h2>
+            </div>
+            <div class="flow-container">
+                <div class="flow-steps">
+                    <div class="flow-step">
+                        <div class="flow-step-icon blue-bg">🖥️</div>
+                        <span class="flow-step-label">Cliente Angular envía credenciales</span>
+                    </div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-step">
+                        <div class="flow-step-icon emerald-bg">🔐</div>
+                        <span class="flow-step-label">POST /api/auth/login</span>
+                    </div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-step">
+                        <div class="flow-step-icon purple-bg">🗄️</div>
+                        <span class="flow-step-label">Valida en MySQL (BCrypt)</span>
+                    </div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-step">
+                        <div class="flow-step-icon amber-bg">🔑</div>
+                        <span class="flow-step-label">Genera JWT (access + refresh)</span>
+                    </div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-step">
+                        <div class="flow-step-icon blue-bg">💾</div>
+                        <span class="flow-step-label">Cliente almacena tokens</span>
+                    </div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-step">
+                        <div class="flow-step-icon emerald-bg">📡</div>
+                        <span class="flow-step-label">Requests con Bearer Token</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cards-grid" style="margin-top: 24px;">
+                <div class="card">
+                    <span class="card-icon">🛡️</span>
+                    <h3>Spring Security 6</h3>
+                    <ul>
+                        <li>SecurityFilterChain con lambda config</li>
+                        <li>JwtAuthenticationFilter personalizado</li>
+                        <li>BCrypt para hash de contraseñas</li>
+                        <li>RBAC a nivel de método con @PreAuthorize</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <span class="card-icon">🎫</span>
+                    <h3>JWT Tokens</h3>
+                    <ul>
+                        <li>Access token: expiración 15 min</li>
+                        <li>Refresh token: expiración 7 días</li>
+                        <li>Claims: userId, email, rol</li>
+                        <li>Firmado con HMAC-SHA256</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <span class="card-icon">🚪</span>
+                    <h3>Protección de Rutas (Angular)</h3>
+                    <ul>
+                        <li>AuthGuard: verifica token válido</li>
+                        <li>RoleGuard: verifica rol requerido</li>
+                        <li>JWT Interceptor: inyecta Bearer token</li>
+                        <li>Auto-redirect si token expirado</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Fases de Implementación -->
+        <section class="section reveal" id="fases">
+            <div class="section-header">
+                <div class="section-icon purple">🚀</div>
+                <h2>Fases de Implementación</h2>
+            </div>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <span class="timeline-phase">Fase 1</span>
+                    <h3 class="timeline-title">🏗️ Fundación — Backend Core</h3>
+                    <ul class="timeline-tasks">
+                        <li><span class="task-number">1</span> Crear proyecto Spring Boot con Maven</li>
+                        <li><span class="task-number">2</span> Configurar application.yml (MySQL, JPA, JWT)</li>
+                        <li><span class="task-number">3</span> Crear entidades JPA (Usuario, Categoria, Plato, Mesa, Pedido, DetallePedido)</li>
+                        <li><span class="task-number">4</span> Crear repositorios Spring Data JPA</li>
+                        <li><span class="task-number">5</span> Implementar Spring Security + JWT Filter</li>
+                        <li><span class="task-number">6</span> Endpoints de autenticación (login, register, refresh)</li>
+                        <li><span class="task-number">7</span> Seed de datos iniciales (admin por defecto)</li>
+                    </ul>
+                </div>
+                <div class="timeline-item">
+                    <span class="timeline-phase">Fase 2</span>
+                    <h3 class="timeline-title">⚙️ API REST Completa</h3>
+                    <ul class="timeline-tasks">
+                        <li><span class="task-number">8</span> CRUD completo de Categorías</li>
+                        <li><span class="task-number">9</span> CRUD completo de Platos</li>
+                        <li><span class="task-number">10</span> CRUD completo de Mesas con gestión de estados</li>
+                        <li><span class="task-number">11</span> CRUD de Pedidos con detalle y flujo de estados</li>
+                        <li><span class="task-number">12</span> Gestión de Usuarios (CRUD + roles)</li>
+                        <li><span class="task-number">13</span> Endpoints de Reportes y estadísticas</li>
+                    </ul>
+                </div>
+                <div class="timeline-item">
+                    <span class="timeline-phase">Fase 3</span>
+                    <h3 class="timeline-title">🖥️ Frontend Angular</h3>
+                    <ul class="timeline-tasks">
+                        <li><span class="task-number">14</span> Crear proyecto Angular + Angular Material</li>
+                        <li><span class="task-number">15</span> Servicios HTTP, JWT Interceptor y Guards</li>
+                        <li><span class="task-number">16</span> Pantalla de Login y sistema de autenticación</li>
+                        <li><span class="task-number">17</span> Layout principal: Navbar + Sidebar + Router</li>
+                        <li><span class="task-number">18</span> Módulo de Menú (gestión de categorías y platos)</li>
+                        <li><span class="task-number">19</span> Módulo de Mesas (mapa visual interactivo)</li>
+                        <li><span class="task-number">20</span> Módulo de Pedidos (crear, gestionar, estados)</li>
+                        <li><span class="task-number">21</span> Módulo de Usuarios (administración)</li>
+                        <li><span class="task-number">22</span> Dashboard con gráficos y reportes</li>
+                    </ul>
+                </div>
+                <div class="timeline-item">
+                    <span class="timeline-phase">Fase 4</span>
+                    <h3 class="timeline-title">✨ Integración y Pulido</h3>
+                    <ul class="timeline-tasks">
+                        <li><span class="task-number">23</span> Pruebas de integración backend (JUnit 5)</li>
+                        <li><span class="task-number">24</span> Pruebas unitarias frontend (Jasmine/Karma)</li>
+                        <li><span class="task-number">25</span> Responsive design y accesibilidad</li>
+                        <li><span class="task-number">26</span> Manejo de errores global (backend + frontend)</li>
+                        <li><span class="task-number">27</span> Documentación final y README</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Requisitos Previos -->
+        <section class="section reveal" id="requisitos">
+            <div class="section-header">
+                <div class="section-icon amber">📋</div>
+                <h2>Requisitos Previos</h2>
+            </div>
+            <div class="alert alert-warning">
+                <h4>⚠️ Herramientas necesarias</h4>
+                <ul>
+                    <li>☕ <strong>Java JDK 17+</strong> (recomendado JDK 21) — <code>java -version</code></li>
+                    <li>📦 <strong>Node.js 18+</strong> y npm — <code>node -v</code></li>
+                    <li>🅰️ <strong>Angular CLI</strong> — <code>npm install -g @angular/cli</code></li>
+                    <li>🐬 <strong>MySQL 8</strong> — Servidor de base de datos</li>
+                    <li>🔨 <strong>Maven 3.9+</strong> — O usar el wrapper mvnw incluido</li>
+                    <li>🧰 <strong>IDE</strong> — IntelliJ IDEA o VS Code</li>
+                    <li>🐙 <strong>Git</strong> — Control de versiones</li>
+                </ul>
+            </div>
+            <div class="alert alert-info">
+                <h4>💡 Comandos de verificación</h4>
+                <ul>
+                    <li><code>java -version</code> → Debe mostrar 17 o superior</li>
+                    <li><code>node -v</code> → Debe mostrar v18 o superior</li>
+                    <li><code>ng version</code> → Angular CLI instalado</li>
+                    <li><code>mysql --version</code> → MySQL 8.x</li>
+                    <li><code>mvn -v</code> → Maven 3.9+</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Equipo -->
+        <section class="section reveal" id="equipo">
+            <div class="section-header">
+                <div class="section-icon emerald">👥</div>
+                <h2>Equipo de Desarrollo</h2>
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 24px;">
+                Integrantes del equipo asignados a cada módulo del proyecto.
+                <em>Actualizar con los nombres y roles de cada integrante.</em>
+            </p>
+            <div class="team-grid">
+                <div class="team-card">
+                    <div class="team-avatar">1</div>
+                    <h4>Integrante 1</h4>
+                    <span class="team-role">Backend — Security</span>
+                </div>
+                <div class="team-card">
+                    <div class="team-avatar">2</div>
+                    <h4>Integrante 2</h4>
+                    <span class="team-role">Backend — API REST</span>
+                </div>
+                <div class="team-card">
+                    <div class="team-avatar">3</div>
+                    <h4>Integrante 3</h4>
+                    <span class="team-role">Frontend — Angular</span>
+                </div>
+                <div class="team-card">
+                    <div class="team-avatar">4</div>
+                    <h4>Integrante 4</h4>
+                    <span class="team-role">Frontend — UI/UX</span>
+                </div>
+                <div class="team-card">
+                    <div class="team-avatar">5</div>
+                    <h4>Integrante 5</h4>
+                    <span class="team-role">Base de Datos</span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>🍽️ Sistema de Gestión de Restaurante — 2026</p>
+        <p style="margin-top: 6px;">Spring Boot · Angular · MySQL · JWT</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Navbar scroll effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            navbar.classList.toggle('scrolled', window.scrollY > 20);
+        });
+
+        // Mobile menu toggle
+        function toggleMenu() {
+            document.getElementById('navLinks').classList.toggle('active');
+        }
+
+        // Close mobile menu on link click
+        document.querySelectorAll('.navbar-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('navLinks').classList.remove('active');
+            });
+        });
+
+        // Scroll reveal animation
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    </script>
+</body>
+</html>
