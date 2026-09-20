@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T1 — Primer Avance | Sistema de Gestión de Restaurante</title>
+    <meta name="description" content="Primer avance del proyecto: información de empresa, procesos, flujogramas, prototipos, historias de usuario y base de datos MySQL.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111827;
+            --bg-card: #1a2035;
+            --bg-card-hover: #1e2744;
+            --bg-code: #0d1117;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-cyan: #06b6d4;
+            --accent-emerald: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-rose: #f43f5e;
+            --accent-orange: #f97316;
+            --gradient-primary: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            --gradient-hero: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            --border-color: rgba(148, 163, 184, 0.1);
+            --border-glow: rgba(59, 130, 246, 0.3);
+            --shadow-glow: 0 0 30px rgba(59, 130, 246, 0.15);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        ::selection { background: rgba(59, 130, 246, 0.3); color: #fff; }
+
+        .bg-grid {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image: linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+        .bg-glow-1, .bg-glow-2 {
+            position: fixed; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: 0;
+            animation: gfloat 15s ease-in-out infinite;
+        }
+        .bg-glow-1 { width: 600px; height: 600px; background: rgba(59,130,246,0.08); top: -200px; right: -200px; }
+        .bg-glow-2 { width: 500px; height: 500px; background: rgba(139,92,246,0.06); bottom: -150px; left: -150px; animation-delay: -7s; }
+        @keyframes gfloat {
+            0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(30px,-20px) scale(1.05)} 66%{transform:translate(-20px,15px) scale(0.95)}
+        }
+
+        /* NAV */
+        .navbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+            background: rgba(10,14,26,0.8); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color); transition: all 0.3s ease;
+        }
+        .navbar.scrolled { background: rgba(10,14,26,0.95); box-shadow: 0 4px 30px rgba(0,0,0,0.3); }
+        .navbar-inner {
+            max-width: 1200px; margin: 0 auto; padding: 0 24px;
+            display: flex; align-items: center; justify-content: space-between; height: 64px;
+        }
+        .navbar-brand {
+            display: flex; align-items: center; gap: 10px; text-decoration: none;
+            color: var(--text-primary); font-weight: 700; font-size: 1.1rem;
+        }
+        .navbar-links { display: flex; gap: 2px; list-style: none; flex-wrap: wrap; }
+        .navbar-links a {
+            color: var(--text-secondary); text-decoration: none; padding: 8px 12px;
+            border-radius: var(--radius-sm); font-size: 0.82rem; font-weight: 500; transition: all 0.2s ease; white-space: nowrap;
+        }
+        .navbar-links a:hover { color: var(--text-primary); background: rgba(59,130,246,0.1); }
+        .mobile-menu-btn { display: none; background: none; border: none; color: var(--text-primary); font-size: 1.5rem; cursor: pointer; }
+        .nav-back {
+            display: inline-flex; align-items: center; gap: 6px; color: var(--accent-blue);
+            text-decoration: none; font-size: 0.85rem; font-weight: 500;
+            padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.2s;
+        }
+        .nav-back:hover { background: rgba(59,130,246,0.1); }
+
+        /* HERO */
+        .hero {
+            position: relative; padding: 130px 24px 70px; text-align: center; z-index: 1; overflow: hidden;
+        }
+        .hero::before { content:''; position: absolute; inset: 0; background: var(--gradient-hero); z-index: -1; }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.25);
+            padding: 6px 18px; border-radius: 50px; font-size: 0.82rem; font-weight: 600;
+            color: var(--accent-purple); margin-bottom: 20px; animation: fadeUp .6s ease;
+        }
+        .hero h1 {
+            font-size: clamp(2rem, 4.5vw, 3.4rem); font-weight: 900; letter-spacing: -0.03em;
+            line-height: 1.15; margin-bottom: 14px; animation: fadeUp .6s ease .1s both;
+        }
+        .gradient-text {
+            background: var(--gradient-primary); -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .hero-subtitle {
+            font-size: 1.1rem; color: var(--text-secondary); max-width: 600px;
+            margin: 0 auto 32px; animation: fadeUp .6s ease .2s both;
+        }
+        .hero-sections {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+            animation: fadeUp .6s ease .3s both;
+        }
+        .hero-tag {
+            padding: 6px 14px; background: rgba(255,255,255,0.04); border: 1px solid var(--border-color);
+            border-radius: 50px; font-size: 0.78rem; font-weight: 500; color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+        .hero-tag:hover { border-color: var(--border-glow); background: rgba(59,130,246,0.08); color: var(--text-primary); transform: translateY(-2px); }
+
+        @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+        /* MAIN */
+        .main-content { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 0 24px 80px; }
+
+        /* SECTIONS */
+        .section { margin-bottom: 72px; }
+        .section-header {
+            display: flex; align-items: center; gap: 14px; margin-bottom: 28px;
+            padding-bottom: 16px; border-bottom: 1px solid var(--border-color);
+        }
+        .section-number {
+            width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+            border-radius: var(--radius-md); font-size: 1.1rem; font-weight: 800; flex-shrink: 0;
+            background: var(--gradient-primary); color: #fff;
+        }
+        .section-header h2 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; }
+
+        /* TABLES */
+        .table-container {
+            overflow-x: auto; border-radius: var(--radius-lg); border: 1px solid var(--border-color);
+            background: var(--bg-card); margin-bottom: 20px;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: rgba(59,130,246,0.08); }
+        th {
+            text-align: left; padding: 13px 18px; font-size: 0.78rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent-blue);
+            border-bottom: 1px solid var(--border-color); white-space: nowrap;
+        }
+        td {
+            padding: 12px 18px; font-size: 0.88rem; border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary); vertical-align: top;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(59,130,246,0.03); }
+        td:first-child { font-weight: 500; color: var(--text-primary); }
+        td strong { color: var(--text-primary); }
+
+        /* CARDS */
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; }
+        .card {
+            background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg);
+            padding: 26px; transition: all 0.3s ease; position: relative; overflow: hidden;
+        }
+        .card::before {
+            content:''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: var(--gradient-primary); opacity: 0; transition: opacity 0.3s ease;
+        }
+        .card:hover { border-color: var(--border-glow); box-shadow: var(--shadow-glow); transform: translateY(-3px); }
+        .card:hover::before { opacity: 1; }
+        .card-icon { font-size: 1.8rem; margin-bottom: 12px; display: block; }
+        .card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
+        .card p, .card li { color: var(--text-secondary); font-size: 0.88rem; line-height: 1.6; }
+        .card ul { list-style: none; margin-top: 10px; }
+        .card ul li { padding: 4px 0; display: flex; align-items: flex-start; gap: 7px; }
+        .card ul li::before { content:'›'; color: var(--accent-blue); font-weight: 700; flex-shrink: 0; }
+
+        /* INFO BLOCKS */
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 24px; }
+        .info-block {
+            background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px;
+        }
+        .info-block h3 { font-size: 1rem; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .info-block p { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.7; }
+
+        /* MERMAID */
+        .mermaid-container {
+            background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg);
+            padding: 28px; overflow-x: auto; margin-bottom: 20px;
+        }
+        .mermaid { display: flex; justify-content: center; }
+
+        /* WIREFRAME */
+        .wireframe {
+            background: var(--bg-code); border: 1px solid var(--border-color); border-radius: var(--radius-lg);
+            padding: 24px; overflow-x: auto; margin-bottom: 18px;
+        }
+        .wireframe-label {
+            font-size: 0.85rem; font-weight: 700; color: var(--accent-cyan); margin-bottom: 12px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .wireframe pre {
+            font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.6;
+            color: var(--text-secondary); white-space: pre; overflow-x: auto;
+        }
+
+        /* CODE BLOCK */
+        .code-block {
+            background: var(--bg-code); border: 1px solid var(--border-color); border-radius: var(--radius-lg);
+            overflow: hidden; margin-bottom: 20px;
+        }
+        .code-header {
+            padding: 10px 18px; background: rgba(59,130,246,0.08);
+            font-size: 0.78rem; font-weight: 600; color: var(--accent-blue);
+            display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border-color);
+        }
+        .code-block pre {
+            padding: 20px; font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.7;
+            color: var(--text-secondary); overflow-x: auto;
+        }
+        .code-block .keyword { color: var(--accent-purple); font-weight: 600; }
+        .code-block .type { color: var(--accent-cyan); }
+        .code-block .string { color: var(--accent-emerald); }
+        .code-block .comment { color: var(--text-muted); font-style: italic; }
+        .code-block .function { color: var(--accent-amber); }
+
+        /* PROBLEM TREE */
+        .problem-stat {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; margin: 24px 0;
+        }
+        .stat-card {
+            background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md);
+            padding: 20px; text-align: center; transition: all 0.3s ease;
+        }
+        .stat-card:hover { border-color: var(--border-glow); transform: translateY(-2px); }
+        .stat-value { font-size: 1.8rem; font-weight: 800; margin-bottom: 4px; }
+        .stat-value.red { color: var(--accent-rose); }
+        .stat-value.green { color: var(--accent-emerald); }
+        .stat-label { font-size: 0.8rem; color: var(--text-muted); }
+        .stat-target { font-size: 0.75rem; color: var(--accent-emerald); margin-top: 4px; }
+
+        /* COMPARISON TABLE */
+        .compare-cell-before { color: var(--accent-rose) !important; }
+        .compare-cell-after { color: var(--accent-emerald) !important; }
+
+        /* HU TABLE */
+        .hu-badge {
+            display: inline-block; padding: 3px 10px; border-radius: 6px;
+            font-size: 0.72rem; font-weight: 700; white-space: nowrap;
+        }
+        .hu-alta { background: rgba(244,63,94,0.12); color: var(--accent-rose); }
+        .hu-media { background: rgba(245,158,11,0.12); color: var(--accent-amber); }
+        .hu-baja { background: rgba(16,185,129,0.12); color: var(--accent-emerald); }
+
+        .method-badge {
+            display: inline-block; padding: 3px 10px; border-radius: 6px;
+            font-size: 0.72rem; font-weight: 700; font-family: var(--font-mono);
+        }
+        .badge-pk { background: rgba(245,158,11,0.15); color: var(--accent-amber); padding: 1px 6px; border-radius: 3px; font-size: 0.65rem; font-weight: 700; }
+        .badge-fk { background: rgba(139,92,246,0.15); color: var(--accent-purple); padding: 1px 6px; border-radius: 3px; font-size: 0.65rem; font-weight: 700; }
+        .badge-uk { background: rgba(6,182,212,0.15); color: var(--accent-cyan); padding: 1px 6px; border-radius: 3px; font-size: 0.65rem; font-weight: 700; }
+
+        /* ENTITY CARDS */
+        .er-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; margin-bottom: 20px; }
+        .entity-card { background: var(--bg-code); border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden; transition: all 0.3s ease; }
+        .entity-card:hover { border-color: var(--border-glow); box-shadow: var(--shadow-glow); }
+        .entity-header { padding: 11px 16px; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
+        .entity-header.h-blue { background: rgba(59,130,246,0.1); color: var(--accent-blue); }
+        .entity-header.h-purple { background: rgba(139,92,246,0.1); color: var(--accent-purple); }
+        .entity-header.h-cyan { background: rgba(6,182,212,0.1); color: var(--accent-cyan); }
+        .entity-header.h-emerald { background: rgba(16,185,129,0.1); color: var(--accent-emerald); }
+        .entity-header.h-amber { background: rgba(245,158,11,0.1); color: var(--accent-amber); }
+        .entity-header.h-rose { background: rgba(244,63,94,0.1); color: var(--accent-rose); }
+        .entity-fields { padding: 6px 0; }
+        .entity-field { padding: 5px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; border-bottom: 1px solid rgba(148,163,184,0.05); }
+        .entity-field:last-child { border-bottom: none; }
+        .field-name { font-family: var(--font-mono); color: var(--text-primary); }
+        .field-type { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); }
+
+        /* ALERT */
+        .alert {
+            padding: 22px 26px; border-radius: var(--radius-lg); border-left: 4px solid; margin-bottom: 20px;
+        }
+        .alert-caution { background: rgba(244,63,94,0.06); border-color: var(--accent-rose); }
+        .alert h4 { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 0.95rem; }
+
+        /* FOOTER */
+        .footer {
+            position: relative; z-index: 1; text-align: center; padding: 28px 24px;
+            border-top: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.85rem;
+        }
+        .footer a { color: var(--accent-blue); text-decoration: none; }
+
+        /* REVEAL */
+        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.6s ease; }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+
+        /* SUB SECTION */
+        .subsection { margin-bottom: 28px; }
+        .subsection-title {
+            font-size: 1.1rem; font-weight: 700; margin-bottom: 14px;
+            display: flex; align-items: center; gap: 8px; color: var(--text-primary);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .navbar-links { display: none; }
+            .mobile-menu-btn { display: block; }
+            .navbar-links.active {
+                display: flex; flex-direction: column; position: absolute; top: 64px; left: 0; right: 0;
+                background: rgba(10,14,26,0.98); backdrop-filter: blur(20px); padding: 16px;
+                border-bottom: 1px solid var(--border-color);
+            }
+            .cards-grid, .er-grid { grid-template-columns: 1fr; }
+            .info-grid { grid-template-columns: 1fr; }
+            .problem-stat { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-glow-1"></div>
+<div class="bg-glow-2"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+    <div class="navbar-inner">
+        <a href="index.html" class="navbar-brand"><span>🍽️</span> RestaurantApp</a>
+        <ul class="navbar-links" id="navLinks">
+            <li><a href="#empresa">Empresa</a></li>
+            <li><a href="#procesos">Procesos</a></li>
+            <li><a href="#mapa">Mapa</a></li>
+            <li><a href="#asis">As-Is</a></li>
+            <li><a href="#problematica">Problemática</a></li>
+            <li><a href="#solucion">Solución</a></li>
+            <li><a href="#tobe">To-Be</a></li>
+            <li><a href="#prototipos">Prototipos</a></li>
+            <li><a href="#historias">Historias</a></li>
+            <li><a href="#database">BD MySQL</a></li>
+        </ul>
+        <button class="mobile-menu-btn" onclick="document.getElementById('navLinks').classList.toggle('active')" aria-label="Menú">☰</button>
+    </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+    <div class="hero-badge">📋 T1 — Primer Avance</div>
+    <h1>Sistema de Gestión de<br><span class="gradient-text">Restaurante</span></h1>
+    <p class="hero-subtitle">Documentación completa del primer entregable: análisis del negocio, procesos, problemática, solución propuesta, prototipos e historias de usuario.</p>
+    <div class="hero-sections">
+        <span class="hero-tag">📌 Empresa</span>
+        <span class="hero-tag">⚙️ Procesos</span>
+        <span class="hero-tag">📊 Flujogramas</span>
+        <span class="hero-tag">⚠️ Problemática</span>
+        <span class="hero-tag">💡 Solución</span>
+        <span class="hero-tag">🖥️ Prototipos</span>
+        <span class="hero-tag">📝 Historias de Usuario</span>
+        <span class="hero-tag">🗄️ Base de Datos</span>
+    </div>
+</header>
+
+<main class="main-content">
+
+    <!-- ============================================ -->
+    <!-- 1. INFORMACIÓN DE EMPRESA -->
+    <!-- ============================================ -->
+    <section class="section reveal" id="empresa">
+        <div class="section-header">
+            <div class="section-number">1</div>
+            <h2>Información de la Empresa</h2>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <tbody>
+                    <tr><td>🏢 <strong>Razón Social</strong></td><td>Restaurante El Buen Sabor S.A.C.</td></tr>
+                    <tr><td>📄 <strong>RUC</strong></td><td>20612345678</td></tr>
+                    <tr><td>🍽️ <strong>Rubro</strong></td><td>Gastronomía / Servicios de alimentación</td></tr>
+                    <tr><td>📍 <strong>Dirección</strong></td><td>Av. La Marina 2500, San Miguel, Lima, Perú</td></tr>
+                    <tr><td>📞 <strong>Teléfono</strong></td><td>(01) 555-1234</td></tr>
+                    <tr><td>📧 <strong>Email</strong></td><td>contacto@elbuensabor.pe</td></tr>
+                    <tr><td>👔 <strong>Gerente General</strong></td><td><em>(Nombre del integrante líder)</em></td></tr>
+                    <tr><td>📅 <strong>Año de fundación</strong></td><td>2018</td></tr>
+                    <tr><td>👥 <strong>N° de empleados</strong></td><td>25 empleados</td></tr>
+                    <tr><td>🕐 <strong>Horario</strong></td><td>Lunes a Domingo, 11:00 AM – 11:00 PM</td></tr>
+                    <tr><td>🪑 <strong>Capacidad</strong></td><td>20 mesas, 80 comensales</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="info-block" style="margin-bottom: 20px;">
+            <h3>📝 Descripción</h3>
+            <p>El Buen Sabor es un restaurante de comida criolla y fusión peruana ubicado en el distrito de San Miguel, Lima. Ofrece una carta variada que incluye entradas, platos de fondo, bebidas y postres elaborados con ingredientes frescos y de alta calidad. Cuenta con un salón principal, una terraza y un área de bar.</p>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-block">
+                <h3>🎯 Misión</h3>
+                <p>Brindar una experiencia gastronómica excepcional a nuestros clientes, ofreciendo platos de alta calidad con sabor peruano en un ambiente acogedor y con un servicio eficiente.</p>
+            </div>
+            <div class="info-block">
+                <h3>🔭 Visión</h3>
+                <p>Ser reconocido como uno de los mejores restaurantes de comida peruana en Lima, destacando por la innovación en nuestra carta, la calidad del servicio y la implementación de tecnología en nuestros procesos operativos.</p>
+            </div>
+        </div>
+
+        <div class="cards-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
+            <div class="card" style="text-align:center;padding:20px"><span class="card-icon">🎯</span><h3>Calidad</h3><p>Excelencia en cada plato</p></div>
+            <div class="card" style="text-align:center;padding:20px"><span class="card-icon">🤝</span><h3>Servicio</h3><p>Atención personalizada</p></div>
+            <div class="card" style="text-align:center;padding:20px"><span class="card-icon">💡</span><h3>Innovación</h3><p>Mejora continua</p></div>
+            <div class="card" style="text-align:center;padding:20px"><span class="card-icon">👥</span><h3>Trabajo en Equipo</h3><p>Colaboración entre áreas</p></div>
+            <div class="card" style="text-align:center;padding:20px"><span class="card-icon">✅</span><h3>Responsabilidad</h3><p>Compromiso total</p></div>
+        </div>
+
+        <div class="subsection" style="margin-top: 28px;">
+            <div class="subsection-title">📊 Organigrama</div>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+graph TD
+    A["👔 Gerente General"] --> B["🍳 Jefe de Cocina"]
+    A --> C["🛎️ Jefe de Salón"]
+    A --> D["💰 Administrador / Cajero"]
+    B --> E["👨‍🍳 Cocineros - 4"]
+    B --> F["🧑‍🍳 Ayudantes de cocina - 3"]
+    C --> G["🤵 Meseros - 6"]
+    C --> H["🧹 Personal de limpieza - 3"]
+    D --> I["📦 Encargado de almacén"]
+    D --> J["📊 Asistente administrativo"]
+                </pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- 2. LISTA DE PROCESOS -->
+    <!-- ============================================ -->
+    <section class="section reveal" id="procesos">
+        <div class="section-header">
+            <div class="section-number">2</div>
+            <h2>Lista de Procesos</h2>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead><tr><th>N°</th><th>Proceso</th><th>Tipo</th><th>Área</th><th>Descripción</th></tr></thead>
+                <tbody>
+                    <tr><td>P01</td><td><strong>Gestión de la carta/menú</strong></td><td>⚙️ Operativo</td><td>Cocina / Admin</td><td>Creación, actualización y control de precios de los platos ofrecidos</td></tr>
+                    <tr><td>P02</td><td><strong>Atención y toma de pedidos</strong></td><td>⚙️ Operativo</td><td>Salón</td><td>Recepción del cliente, asignación de mesa, toma y envío del pedido a cocina</td></tr>
+                    <tr><td>P03</td><td><strong>Preparación de alimentos</strong></td><td>⚙️ Operativo</td><td>Cocina</td><td>Recepción de la comanda, preparación del plato y notificación al mesero</td></tr>
+                    <tr><td>P04</td><td><strong>Gestión de mesas</strong></td><td>⚙️ Operativo</td><td>Salón</td><td>Control del estado y disponibilidad de las mesas del restaurante</td></tr>
+                    <tr><td>P05</td><td><strong>Facturación y cobro</strong></td><td>⚙️ Operativo</td><td>Caja</td><td>Generación de la cuenta, cobro al cliente y registro de la venta</td></tr>
+                    <tr><td>P06</td><td><strong>Gestión de inventario</strong></td><td>🔧 Soporte</td><td>Almacén</td><td>Control de insumos, stock mínimo, compras y recepción de mercadería</td></tr>
+                    <tr><td>P07</td><td><strong>Gestión de personal</strong></td><td>🔧 Soporte</td><td>Admin</td><td>Registro de empleados, turnos, roles y permisos del sistema</td></tr>
+                    <tr><td>P08</td><td><strong>Reportes y análisis</strong></td><td>🎯 Estratégico</td><td>Gerencia</td><td>Generación de reportes de ventas, platos populares y desempeño</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- 3. MAPA DE PROCESOS -->
+    <!-- ============================================ -->
+    <section class="section reveal" id="mapa">
+        <div class="section-header">
+            <div class="section-number">3</div>
+            <h2>Mapa de Procesos</h2>
+        </div>
+        <div class="mermaid-container">
+            <pre class="mermaid">
+graph TB
+    subgraph EST["🎯 PROCESOS ESTRATÉGICOS"]
+        E1["📊 P08: Reportes y Análisis"]
+        E2["📋 Planificación Estratégica"]
+        E3["💡 Mejora Continua"]
+    end
+    subgraph OPE["⚙️ PROCESOS OPERATIVOS - Cadena de Valor"]
+        direction LR
+        O1["🍽️ P01: Gestión de Carta"]
+        O2["🪑 P04: Gestión de Mesas"]
+        O3["📋 P02: Atención y Toma de Pedidos"]
+        O4["🍳 P03: Preparación de Alimentos"]
+        O5["💰 P05: Facturación y Cobro"]
+    end
+    subgraph SOP["🔧 PROCESOS DE SOPORTE"]
+        S1["📦 P06: Gestión de Inventario"]
+        S2["👥 P07: Gestión de Personal"]
+        S3["🔧 Mantenimiento"]
+    end
+    CLI_IN["👤 CLIENTES - Necesidades"] --> OPE
+    OPE --> CLI_OUT["👤 CLIENTES - Satisfacción"]
+    EST -.->|Directrices| OPE
+    SOP -.->|Recursos| OPE
+            </pre>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- 4. FLUJOGRAMA AS-IS -->
+    <!-- ============================================ -->
+    <section class="section reveal" id="asis">
+        <div class="section-header">
+            <div class="section-number">4</div>
+            <h2>Flujograma As-Is — Proceso Actual (Manual)</h2>
+        </div>
+
+        <div class="subsection">
+            <div class="subsection-title">📋 4.1 Atención al Cliente y Toma de Pedidos</div>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    A(["🚶 Cliente llega al restaurante"]) --> B{"¿Hay mesas disponibles?"}
+    B -->|No| C["🕐 Cliente espera en la entrada - No hay registro de espera"]
+    C --> B
+    B -->|Sí| D["🤵 Mesero busca mesa libre - Recorre el salón visualmente"]
+    D --> E["🪑 Asigna mesa - De memoria, sin sistema"]
+    E --> F["📝 Entrega carta física impresa"]
+    F --> G["⏳ Cliente revisa carta y decide"]
+    G --> H["✍️ Mesero anota pedido en libreta de papel"]
+    H --> I["🚶 Mesero camina a cocina y entrega comanda en papel"]
+    I --> J["👨‍🍳 Cocinero lee comanda"]
+    J --> K{"¿Se entiende la comanda?"}
+    K -->|No| L["🔄 Cocinero busca al mesero para aclarar"]
+    L --> J
+    K -->|Sí| M["🍳 Cocinero prepara los platos"]
+    M --> N["📢 Cocinero grita o toca campana"]
+    N --> O{"¿Mesero escuchó el aviso?"}
+    O -->|No| P["⏳ Plato se enfría esperando"]
+    P --> O
+    O -->|Sí| Q["🤵 Mesero recoge y lleva a la mesa"]
+    Q --> R["🍽️ Cliente consume"]
+    R --> S["🙋 Cliente pide la cuenta"]
+    S --> T["🧮 Cajero suma en calculadora"]
+    T --> U["📄 Escribe boleta a mano"]
+    U --> V["💰 Cliente paga"]
+    V --> W["📓 Registra venta en cuaderno"]
+    W --> X(["✅ Fin del proceso"])
+                </pre>
+            </div>
+        </div>
+
+        <div class="subsection">
+            <div class="subsection-title">📦 4.2 Gestión de Inventario</div>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    A(["📦 Inicio: Verificar stock"]) --> B["👀 Revisa visualmente los insumos"]
+    B --> C["📓 Compara con lista en cuaderno"]
+    C --> D{"¿Hay insumos faltantes?"}
+    D -->|No| E["✅ No se realiza acción"]
+    D -->|Sí| F["📝 Anota insumos a comprar en papel"]
+    F --> G["📞 Llama a proveedores"]
+    G --> H["⏳ Espera respuesta"]
+    H --> I["🛒 Realiza compra"]
+    I --> J["📦 Recibe mercadería"]
+    J --> K["✍️ Registra en cuaderno"]
+    K --> L(["✅ Fin del proceso"])
+                </pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- 5. REALIDAD PROBLEMÁTICA -->
+    <!-- ============================================ -->
+    <section class="section reveal" id="problematica">
+        <div class="section-header">
+            <div class="section-number">5</div>
+            <h2>Realidad Problemática</h2>
+        </div>
+
+        <div class="info-block" style="margin-bottom: 24px;">
+            <h3>🔍 Diagnóstico Situacional</h3>
+            <p>El restaurante "El Buen Sabor" actualmente gestiona la totalidad de sus operaciones de manera <strong>manual y basada en papel</strong>, lo cual genera múltiples problemas operativos que impactan directamente en la calidad del servicio, la eficiencia del personal y la rentabilidad del negocio.</p>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead><tr><th>N°</th><th>Problema</th><th>Impacto</th><th>Frecuencia</th></tr></thead>
+                <tbody>
+                    <tr><td>1</td><td><strong>Toma de pedidos en papel</strong> — Errores de lectura, pedidos incorrectos, pérdida de comandas</td><td>Platos equivocados. Pérdidas por devoluciones</td><td>Diario</td></tr>
+                    <tr><td>2</td><td><strong>Sin control de mesas</strong> — Meseros dependen de su memoria para saber disponibilidad</td><td>Esperas innecesarias. Pérdida de clientes</td><td>Diario</td></tr>
+                    <tr><td>3</td><td><strong>Comunicación deficiente cocina-salón</strong> — Aviso con campana o gritos</td><td>Platos se enfrían. Clientes insatisfechos</td><td>8-10 veces/día</td></tr>
+                    <tr><td>4</td><td><strong>Facturación manual</strong> — Cálculos con calculadora, boletas a mano</td><td>Colas, errores de cobro, sin reportes</td><td>Diario</td></tr>
+                    <tr><td>5</td><td><strong>Sin reportes ni métricas</strong> — No se sabe qué platos se venden más</td><td>Decisiones por intuición, no por datos</td><td>Permanente</td></tr>
+                    <tr><td>6</td><td><strong>Control de inventario deficiente</strong> — Verificación visual, cuadernos desactualizados</td><td>Insumos agotados sin aviso, desperdicio</td><td>2-3 veces/sem</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="alert alert-caution">
+            <h4>⚠️ Impacto Económico Estimado Mensual</h4>
+        </div>
+
+        <div class="problem-stat">
+            <div class="stat-card"><div class="stat-value red">~15%</div><div class="stat-label">Pedidos con errores</div><div class="stat-target">Meta: &lt; 2%</div></div>
+            <div class="stat-card"><div class="stat-value red">45-60 min</div><div class="stat-label">Tiempo de atención</div><div class="stat-target">Meta: 25-35 min</div></div>
+            <div class="stat-card"><div class="stat-value red">8-12/sem</div><div class="stat-label">Platos devueltos</div><div class="stat-target">Meta: &lt; 2/sem</div></div>
+            <div class="stat-card"><div class="stat-value red">5-8 min</div><div class="stat-label">Generar cuenta</div><div class="stat-target">Meta: &lt; 1 min</div></div>
+            <div class="stat-card"><div class="stat-value red">~10/sem</div><div class="stat-label">Clientes perdidos</div><div class="stat-target">Meta: &lt; 2/sem</div></div>
+            <div class="stat-card"><div class="stat-value red">S/ 800</div><div class="stat-label">Pérdidas por errores/mes</div><div class="stat-target">Meta: S/ 0</div></div>
+        </div>
+
+        <div class="subsection" style="margin-top: 28px;">
+            <div class="subsection-title">🌳 Árbol de Problemas</div>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+graph TB
+    subgraph EF["📈 EFECTOS"]
+        E1["💸 Pérdidas económicas mensuales"]
+        E2["😡 Insatisfacción de clientes"]
+        E3["📉 Baja competitividad"]
+        E4["😰 Estrés del personal"]
+    end
+    subgraph PC["🔴 PROBLEMA CENTRAL"]
+        P["❌ Gestión ineficiente de los procesos operativos por uso de métodos manuales"]
+    end
+    subgraph CA["🔍 CAUSAS"]
+        C1["📝 Pedidos en papel"]
+        C2["🧠 Mesas por memoria"]
+        C3["📢 Comunicación verbal"]
+        C4["🧮 Facturación manual"]
+        C5["📓 Registros en cuadernos"]
+        C6["❌ Sin tecnología"]
+    end
+    P --> E1
+    P --> E2
+    P --> E3
+    P --> E4
+    C1 --> P
+    C2 --> P
+    C3 --> P
+    C4 --> P
+    C5 --> P
+    C6 --> P
+                </pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- 6. DESCRIPCIÓN DE LA SOLUCIÓN -->
+    <!-- ============================================ -->
+    <section class="section reveal" id="solucion">
+        <div class="section-header">
+            <div class="section-number">6</div>
+            <h2>Descripción de la Solución</h2>
+        </div>
+
+        <div class="info-block" style="margin-bottom: 24px;">
+            <h3>💡 Propuesta</h3>
+            <p>Desarrollo e implementación de un <strong>Sistema Web de Gestión de Restaurante</strong> que digitalice y automatice los procesos operativos principales, reemplazando los métodos manuales por una plataforma integrada, accesible desde cualquier dispositivo con navegador web.</p>
+        </div>
+
+        <div class="cards-grid">
+            <div class="card"><span class="card-icon">🔐</span><h3>Módulo de Autenticación</h3><p>Login seguro con JWT. Roles: Admin, Mesero, Cocinero, Cajero.</p><p style="margin-top:8px;font-size:0.8rem;color:var(--accent-rose)">Resuelve: Falta de control de acceso</p></div>
+            <div class="card"><span class="card-icon">🍽️</span><h3>Módulo de Menú</h3><p>CRUD digital de categorías y platos con precios, imágenes y disponibilidad en tiempo real.</p><p style="margin-top:8px;font-size:0.8rem;color:var(--accent-rose)">Resuelve: Carta desactualizada en papel</p></div>
+            <div class="card"><span class="card-icon">📋</span><h3>Módulo de Pedidos</h3><p>Toma de pedidos digital desde tablet, envío instantáneo a cocina, seguimiento de estados.</p><p style="margin-top:8px;font-size:0.8rem;color:var(--accent-rose)">Resuelve: Pedidos en papel con errores</p></div>
+            <div class="card"><span class="card-icon">🪑</span><h3>Módulo de Mesas</h3><p>Mapa visual interactivo con estados en tiempo real (Disponible, Ocupada, Reservada).</p><p style="margin-top:8px;font-size:0.8rem;color:var(--accent-rose)">Resuelve: Control de mesas por memoria</p></div>
+            <div class="card"><span class="card-icon">👨‍🍳</span><h3>Módulo de Cocina</h3><p>Pantalla con pedidos en cola, notificaciones automáticas cuando el plato está listo.</p><p style="margin-top:8px;font-size:0.8rem;color:var(--accent-rose)">Resuelve: Comunicación deficiente</p></div>
+            <div class="card"><span class="card-icon">💰</span><h3>Módulo de Facturación</h3><p>Generación automática de cuentas, cálculo instantáneo de totales.</p><p style="margin-top:8px;font-size:0.8rem;color:var(--accent-rose)">Resuelve: Cálculos manuales y lentos</p></div>
+            <div class="card"><span class="card-icon">📊</span><h3>Módulo de Reportes</h3><p>Dashboard con ventas diarias, platos populares, gráficos interactivos.</p><p style="margin-top:8px;font-size:0.8rem;color:var(--accent-rose)">Resuelve: Sin métricas del negocio</p></div>
+            <div class="card"><span class="card-icon">👥</span><h3>Módulo de Usuarios</h3><p>Gestión de empleados, roles y permisos del sistema.</p><p style="margin-top:8px;font-size:0.8rem;color:var(--accent-rose)">Resuelve: Sin control de personal</p></div>
+        </div>
+
+        <div class="subsection" style="margin-top: 28px;">
+            <div class="subsection-title">📈 Beneficios Esperados</div>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>Indicador</th><th>Antes (Manual)</th><th>Después (Sistema)</th><th>Mejora</th></tr></thead>
+                    <tbody>
+                        <tr><td>Pedidos con errores</td><td class="compare-cell-before">~15%</td><td class="compare-cell-after">&lt; 2%</td><td><strong style="color:var(--accent-emerald)">-87%</strong></td></tr>
+                        <tr><td>Tiempo de atención</td><td class="compare-cell-before">45-60 min</td><td class="compare-cell-after">25-35 min</td><td><strong style="color:var(--accent-emerald)">-45%</strong></td></tr>
+                        <tr><td>Platos devueltos/semana</td><td class="compare-cell-before">8-12</td><td class="compare-cell-after">&lt; 2</td><td><strong style="color:var(--accent-emerald)">-83%</strong></td></tr>
+                        <tr><td>Tiempo generar cuenta</td><td class="compare-cell-before">5-8 min</td><td class="compare-cell-after">&lt; 1 min</td><td><strong style="color:var(--accent-emerald)">-88%</strong></td></tr>
+                        <tr><td>Tiempo para reportes</td><td class="compare-cell-before">2-3 horas</td><td class="compare-cell-after">5 segundos</td><td><strong style="color:var(--accent-emerald)">-99%</strong></td></tr>
+                        <tr><td>Pérdidas por errores</td><td class="compare-cell-before">S/ 800/mes</td><td class="compare-cell-after">S/ 0</td><td><strong style="color:var(--accent-emerald)">-100%</strong></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- 7. FLUJOGRAMA TO-BE -->
+    <!-- ============================================ -->
+    <section class="section reveal" id="tobe">
+        <div class="section-header">
+            <div class="section-number">7</div>
+            <h2>Flujograma To-Be — Proceso Futuro (Con Sistema)</h2>
+        </div>
+        <div class="mermaid-container">
+            <pre class="mermaid">
+flowchart TD
+    A(["🚶 Cliente llega al restaurante"]) --> B["🖥️ Mesero consulta SISTEMA para ver mesas"]
+    B --> C["🪑 Mapa visual muestra mesas DISPONIBLES en verde"]
+    C --> D["✅ Asigna mesa con un clic - estado OCUPADA"]
+    D --> E["📱 Mesero toma pedido desde TABLET"]
+    E --> F["🔍 Selecciona platos del menú digital"]
+    F --> G["📤 Pedido se envía AUTOMÁTICAMENTE a cocina"]
+    G --> H["🖥️ Pantalla de cocina muestra pedido con detalle"]
+    H --> I["🍳 Cocinero prepara los platos"]
+    I --> J["✅ Cocinero marca como LISTO en sistema"]
+    J --> K["🔔 Mesero recibe NOTIFICACIÓN en su tablet"]
+    K --> L["🤵 Mesero lleva platos a mesa correcta"]
+    L --> M["🍽️ Cliente consume"]
+    M --> N["📱 Mesero genera cuenta - 1 clic"]
+    N --> O["💰 Sistema calcula total AUTOMÁTICAMENTE"]
+    O --> P["🧾 Boleta digital o impresa"]
+    P --> Q["💳 Cliente paga"]
+    Q --> R["📊 Venta registrada en reportes automáticamente"]
+    R --> S["🪑 Mesa se libera automáticamente"]
+    S --> T(["✅ Fin del proceso"])
+            </pre>
+        </div>
+
+        <div class="subsection" style="margin-top: 24px;">
+            <div class="subsection-title">⚖️ Comparación As-Is vs To-Be</div>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>Aspecto</th><th>As-Is (Manual)</th><th>To-Be (Con Sistema)</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>Verificar mesas</strong></td><td class="compare-cell-before">Recorrer el salón visualmente</td><td class="compare-cell-after">Mapa digital en tiempo real</td></tr>
+                        <tr><td><strong>Tomar pedido</strong></td><td class="compare-cell-before">Anotar en libreta de papel</td><td class="compare-cell-after">Seleccionar platos en tablet</td></tr>
+                        <tr><td><strong>Enviar a cocina</strong></td><td class="compare-cell-before">Caminar y entregar comanda en papel</td><td class="compare-cell-after">Envío automático e instantáneo</td></tr>
+                        <tr><td><strong>Aviso plato listo</strong></td><td class="compare-cell-before">Grito o campana</td><td class="compare-cell-after">Notificación automática en tablet</td></tr>
+                        <tr><td><strong>Generar cuenta</strong></td><td class="compare-cell-before">Calcular en calculadora</td><td class="compare-cell-after">1 clic → cálculo automático</td></tr>
+                        <tr><td><strong>Registrar venta</strong></td><td class="compare-cell-before">Escribir en cuaderno</td><td class="compare-cell-after">Registro automático en BD</td></tr>
+                        <tr><td><strong>Consultar reportes</strong></td><td class="compare-cell-before">Sumar datos de cuadernos (horas)</td><td class="compare-cell-after">Dashboard en tiempo real (segundos)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- 8. PROTOTIPOS -->
+    <!-- ============================================ -->
+    <section class="section reveal" id="prototipos">
+        <div class="section-header">
+            <div class="section-number">8</div>
+            <h2>Prototipos de Interfaz</h2>
+        </div>
+
+        <div class="wireframe">
+            <div class="wireframe-label">🔐 8.1 — Pantalla de Login</div>
+            <pre>
+┌─────────────────────────────────────────────────┐
+│                                                 │
+│            🍽️  EL BUEN SABOR                    │
+│            Sistema de Gestión                   │
+│                                                 │
+│       ┌─────────────────────────────┐           │
+│       │  📧 Email                   │           │
+│       └─────────────────────────────┘           │
+│       ┌─────────────────────────────┐           │
+│       │  🔒 Contraseña              │           │
+│       └─────────────────────────────┘           │
+│                                                 │
+│       ┌─────────────────────────────┐           │
+│       │     🔑 INICIAR SESIÓN       │           │
+│       └─────────────────────────────┘           │
+│                                                 │
+│       ¿Olvidaste tu contraseña?                 │
+│                                                 │
+└─────────────────────────────────────────────────┘</pre>
+        </div>
+
+        <div class="wireframe">
+            <div class="wireframe-label">📊 8.2 — Dashboard Principal (Admin)</div>
+            <pre>
+┌──────────────────────────────────────────────────────────────────┐
+│ 🍽️ El Buen Sabor              🔔 Notificaciones    👤 Admin ▼  │
+├──────────┬───────────────────────────────────────────────────────┤
+│          │                                                       │
+│ 📊 Dash  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐│
+│ 🍽️ Menú  │  │💰 Ventas │ │📋 Pedidos│ │🪑 Mesas  │ │👥 Clientes││
+│ 📋 Pedid │  │   Hoy    │ │  Activos │ │ Ocupadas │ │ Atendidos││
+│ 🪑 Mesas │  │ S/3,450  │ │    12    │ │  14/20   │ │    45    ││
+│ 👥 Users │  └──────────┘ └──────────┘ └──────────┘ └──────────┘│
+│ 📊 Report│                                                       │
+│          │  ┌─────────────────────┐ ┌────────────────────────┐  │
+│ ──────── │  │ 📈 Ventas Semanal   │ │ 🏆 Platos + vendidos   │  │
+│ ⚙️ Config│  │                     │ │                        │  │
+│ 🚪 Salir │  │   ▁▂▅▇█▆▃▅▇        │ │ 1. Lomo Saltado        │  │
+│          │  │   L M M J V S D     │ │ 2. Ceviche Clásico     │  │
+│          │  └─────────────────────┘ │ 3. Ají de Gallina      │  │
+│          │                          └────────────────────────┘  │
+│          │  ┌──────────────────────────────────────────────┐    │
+│          │  │ 📋 Últimos Pedidos                           │    │
+│          │  │ #045 │ Mesa 7  │ En preparación │ S/85.00   │    │
+│          │  │ #044 │ Mesa 3  │ Entregado      │ S/120.00  │    │
+│          │  │ #043 │ Mesa 12 │ Pagado         │ S/67.50   │    │
+│          │  └──────────────────────────────────────────────┘    │
+└──────────┴───────────────────────────────────────────────────────┘</pre>
+        </div>
+
+        <div class="wireframe">
+            <div class="wireframe-label">🍽️ 8.3 — Gestión de Menú</div>
+            <pre>
+┌──────────────────────────────────────────────────────────────────┐
+│ 🍽️ El Buen Sabor                🔔          👤 Admin  ▼        │
+├──────────┬───────────────────────────────────────────────────────┤
+│          │  Gestión de Menú             [+ Nuevo Plato]          │
+│          │                                                       │
+│ SIDEBAR  │  Categorías: [Todas ▼]  Buscar: [🔍____________]    │
+│          │                                                       │
+│          │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐│
+│          │  │ 🖼️       │ │ 🖼️       │ │ 🖼️       │ │ 🖼️       ││
+│          │  │ Lomo     │ │ Ceviche  │ │ Ají de   │ │ Arroz c/ ││
+│          │  │ Saltado  │ │ Clásico  │ │ Gallina  │ │ Mariscos ││
+│          │  │ S/ 35.00 │ │ S/ 38.00 │ │ S/ 28.00 │ │ S/ 42.00││
+│          │  │ 🟢 Activo│ │ 🟢 Activo│ │ 🔴 Agot. │ │ 🟢 Activo││
+│          │  │ [✏️][🗑️]  │ │ [✏️][🗑️]  │ │ [✏️][🗑️]  │ │ [✏️][🗑️]  ││
+│          │  └──────────┘ └──────────┘ └──────────┘ └──────────┘│
+│          │                                                       │
+│          │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐│
+│          │  │ 🖼️       │ │ 🖼️       │ │ 🖼️       │ │ 🖼️       ││
+│          │  │Papa Huan.│ │ Chicha   │ │ Suspiro  │ │ Pisco    ││
+│          │  │ S/ 18.00 │ │ S/ 8.00  │ │ S/ 15.00 │ │ S/ 22.00││
+│          │  └──────────┘ └──────────┘ └──────────┘ └──────────┘│
+└──────────┴───────────────────────────────────────────────────────┘</pre>
+        </div>
+
+        <div class="wireframe">
+            <div class="wireframe-label">📋 8.4 — Toma de Pedidos (Mesero — Tablet)</div>
+            <pre>
+┌──────────────────────────────────────────────────────────────────┐
+│ 📋 Nuevo Pedido — Mesa 7                       👤 Carlos M.     │
+├────────────────────────────┬─────────────────────────────────────┤
+│  📂 CATEGORÍAS             │  🛒 PEDIDO ACTUAL                   │
+│                            │                                     │
+│  [🥗 Entradas]             │  ┌────────────────────────────┐    │
+│  [🍖 Platos de Fondo]      │  │ 1x Ceviche       S/ 38.00 │    │
+│  [🥤 Bebidas]              │  │ 2x Lomo Saltado  S/ 70.00 │    │
+│  [🍰 Postres]              │  │ 1x Chicha        S/  8.00 │    │
+│                            │  │ 1x Pisco Sour    S/ 22.00 │    │
+│  ── Platos de Fondo ──     │  └────────────────────────────┘    │
+│                            │                                     │
+│  ┌─────────┐ ┌─────────┐  │  Notas: [Sin cebolla al ceviche]   │
+│  │ 🖼️      │ │ 🖼️      │  │                                     │
+│  │ Lomo    │ │ Arroz c/│  │  ───────────────────────────────    │
+│  │ Saltado │ │ Mariscos│  │  Subtotal:            S/ 138.00    │
+│  │ S/35.00 │ │ S/42.00 │  │  IGV (18%):            S/ 24.84    │
+│  │ [+ 🛒]  │ │ [+ 🛒]  │  │  ────────────────────────────────  │
+│  └─────────┘ └─────────┘  │  TOTAL:               S/ 162.84    │
+│  ┌─────────┐ ┌─────────┐  │                                     │
+│  │ 🖼️      │ │ 🖼️      │  │  ┌───────────────────────────┐     │
+│  │ Ají de  │ │ Seco de │  │  │    📤 ENVIAR A COCINA      │     │
+│  │ Gallina │ │ Cordero │  │  └───────────────────────────┘     │
+│  │ S/28.00 │ │ S/32.00 │  │                                     │
+│  │ [+ 🛒]  │ │ [+ 🛒]  │  │  [ 🗑️ Cancelar Pedido ]            │
+│  └─────────┘ └─────────┘  │                                     │
+└────────────────────────────┴─────────────────────────────────────┘</pre>
+        </div>
+
+        <div class="wireframe">
+            <div class="wireframe-label">🪑 8.5 — Mapa de Mesas</div>
+            <pre>
+┌──────────────────────────────────────────────────────────────────┐
+│ 🪑 Gestión de Mesas                       [+ Nueva Mesa]        │
+├──────────┬───────────────────────────────────────────────────────┤
+│          │                                                       │
+│          │  🟢 Disponible: 6   🔴 Ocupada: 12   🟡 Reservada: 2 │
+│          │                                                       │
+│ SIDEBAR  │  ┌─── SALÓN PRINCIPAL ────────────────────────┐      │
+│          │  │                                             │      │
+│          │  │   ┌─────┐  ┌─────┐  ┌─────┐  ┌─────┐     │      │
+│          │  │   │ M-1 │  │ M-2 │  │ M-3 │  │ M-4 │     │      │
+│          │  │   │ 🟢4p │  │ 🔴4p │  │ 🔴2p │  │ 🟢6p │     │      │
+│          │  │   └─────┘  └─────┘  └─────┘  └─────┘     │      │
+│          │  │                                             │      │
+│          │  │   ┌─────┐  ┌─────┐  ┌─────┐  ┌─────┐     │      │
+│          │  │   │ M-5 │  │ M-6 │  │ M-7 │  │ M-8 │     │      │
+│          │  │   │ 🔴2p │  │ 🟡4p │  │ 🔴4p │  │ 🟢2p │     │      │
+│          │  │   └─────┘  └─────┘  └─────┘  └─────┘     │      │
+│          │  │                                             │      │
+│          │  │   ┌──────────┐  ┌──────────┐    TERRAZA   │      │
+│          │  │   │   M-9    │  │   M-10   │              │      │
+│          │  │   │  🔴 8p   │  │  🟢 8p   │              │      │
+│          │  │   └──────────┘  └──────────┘              │      │
+│          │  └─────────────────────────────────────────────┘      │
+└──────────┴───────────────────────────────────────────────────────┘</pre>
+        </div>
+
+        <div class="wireframe">
+            <div class="wireframe-label">🍳 8.6 — Vista de Cocina</div>
+            <pre>
+┌──────────────────────────────────────────────────────────────────┐
+│ 🍳 PANTALLA DE COCINA                  🕐 11:45 AM    🔴 EN VIVO│
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐    │
+│  │ 🔴 PENDIENTE    │  │ 🟡 PENDIENTE    │  │ 🟠 EN PREP.     │    │
+│  │ Pedido #047    │  │ Pedido #046    │  │ Pedido #045    │    │
+│  │ Mesa 5         │  │ Mesa 12        │  │ Mesa 7         │    │
+│  │ 11:42 AM       │  │ 11:38 AM       │  │ 11:35 AM       │    │
+│  │ ────────────── │  │ ────────────── │  │ ────────────── │    │
+│  │ 2x Ceviche     │  │ 1x Lomo Salt.  │  │ 3x Ají Gall.  │    │
+│  │ 1x Lomo Salt.  │  │ 1x Arroz Mar.  │  │ 1x Seco Cord.  │    │
+│  │ 1x Papa Huan.  │  │ 2x Papa Huan.  │  │                │    │
+│  │                │  │                │  │ Nota: sin ají  │    │
+│  │ ⏱️ Hace 3 min   │  │ ⏱️ Hace 7 min   │  │ ⏱️ Hace 10 min  │    │
+│  │                │  │                │  │                │    │
+│  │ [🍳 Preparar]  │  │ [🍳 Preparar]  │  │  [✅ LISTO]    │    │
+│  └────────────────┘  └────────────────┘  └────────────────┘    │
+│                                                                  │
+│  ── COMPLETADOS HOY: 38 pedidos ──────────────────────────────  │
+└──────────────────────────────────────────────────────────────────┘</pre>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- 9. HISTORIAS DE USUARIO -->
+    <!-- ============================================ -->
+    <section class="section reveal" id="historias">
+        <div class="section-header">
+            <div class="section-number">9</div>
+            <h2>Historias de Usuario</h2>
+        </div>
+
+        <div class="subsection">
+            <div class="subsection-title">👔 Rol: Administrador</div>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>ID</th><th>Historia de Usuario</th><th>Criterios de Aceptación</th><th>Prioridad</th></tr></thead>
+                    <tbody>
+                        <tr><td>HU-01</td><td><strong>Como</strong> administrador, <strong>quiero</strong> iniciar sesión con email y contraseña, <strong>para</strong> acceder al sistema con permisos de admin.</td><td>• Validar email y contraseña<br>• Error si credenciales incorrectas<br>• Redirigir al dashboard<br>• Token JWT válido 15 min</td><td><span class="hu-badge hu-alta">Alta</span></td></tr>
+                        <tr><td>HU-02</td><td><strong>Como</strong> administrador, <strong>quiero</strong> gestionar categorías del menú (CRUD), <strong>para</strong> organizar los platos del restaurante.</td><td>• Formulario con nombre y descripción<br>• Nombre no repetido<br>• Activar/desactivar<br>• Confirmación al eliminar</td><td><span class="hu-badge hu-alta">Alta</span></td></tr>
+                        <tr><td>HU-03</td><td><strong>Como</strong> administrador, <strong>quiero</strong> gestionar platos del menú (CRUD), <strong>para</strong> mantener la carta actualizada.</td><td>• Nombre, descripción, precio, categoría, imagen<br>• Marcar "no disponible"<br>• Filtrar por categoría</td><td><span class="hu-badge hu-alta">Alta</span></td></tr>
+                        <tr><td>HU-04</td><td><strong>Como</strong> administrador, <strong>quiero</strong> gestionar empleados (CRUD), <strong>para</strong> controlar acceso y roles.</td><td>• Nombre, apellido, email, rol<br>• Roles: Admin, Mesero, Cocinero, Cajero<br>• Desactivar, no eliminar</td><td><span class="hu-badge hu-alta">Alta</span></td></tr>
+                        <tr><td>HU-05</td><td><strong>Como</strong> administrador, <strong>quiero</strong> ver reportes de ventas con gráficos, <strong>para</strong> tomar decisiones informadas.</td><td>• Gráfico de barras ventas/día<br>• Top 5 platos vendidos<br>• Total ingresos del período<br>• Filtro por fechas</td><td><span class="hu-badge hu-media">Media</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="subsection">
+            <div class="subsection-title">🤵 Rol: Mesero</div>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>ID</th><th>Historia de Usuario</th><th>Criterios de Aceptación</th><th>Prioridad</th></tr></thead>
+                    <tbody>
+                        <tr><td>HU-06</td><td><strong>Como</strong> mesero, <strong>quiero</strong> ver el mapa de mesas en tiempo real, <strong>para</strong> saber cuáles están disponibles.</td><td>• Colores: verde=disponible, rojo=ocupada, amarillo=reservada<br>• Actualización en tiempo real<br>• Mostrar capacidad</td><td><span class="hu-badge hu-alta">Alta</span></td></tr>
+                        <tr><td>HU-07</td><td><strong>Como</strong> mesero, <strong>quiero</strong> tomar pedidos desde mi tablet, <strong>para</strong> enviarlos directamente a cocina sin errores.</td><td>• Menú con fotos, nombres y precios<br>• Agregar/quitar ítems<br>• Notas especiales<br>• Botón "Enviar a cocina"</td><td><span class="hu-badge hu-alta">Alta</span></td></tr>
+                        <tr><td>HU-08</td><td><strong>Como</strong> mesero, <strong>quiero</strong> recibir notificación cuando el pedido esté listo, <strong>para</strong> llevarlo sin demoras.</td><td>• Notificación visual/sonora<br>• Indica mesa y detalle<br>• Marcar como ENTREGADO</td><td><span class="hu-badge hu-alta">Alta</span></td></tr>
+                        <tr><td>HU-09</td><td><strong>Como</strong> mesero, <strong>quiero</strong> generar la cuenta con un clic, <strong>para</strong> que el cliente no espere.</td><td>• Detalle de platos consumidos<br>• Cálculo automático subtotal, IGV, total<br>• Imprimir o mostrar en pantalla</td><td><span class="hu-badge hu-alta">Alta</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="subsection">
+            <div class="subsection-title">👨‍🍳 Rol: Cocinero</div>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>ID</th><th>Historia de Usuario</th><th>Criterios de Aceptación</th><th>Prioridad</th></tr></thead>
+                    <tbody>
+                        <tr><td>HU-10</td><td><strong>Como</strong> cocinero, <strong>quiero</strong> ver todos los pedidos pendientes en pantalla, <strong>para</strong> prepararlos en orden.</td><td>• Lista PENDIENTE y EN_PREPARACIÓN<br>• Ordenados por antigüedad<br>• Detalle, cantidades y notas</td><td><span class="hu-badge hu-alta">Alta</span></td></tr>
+                        <tr><td>HU-11</td><td><strong>Como</strong> cocinero, <strong>quiero</strong> marcar un pedido como "Listo", <strong>para</strong> que el mesero sea notificado.</td><td>• Botón "Marcar como Listo"<br>• Estado cambia a LISTO<br>• Notificación al mesero</td><td><span class="hu-badge hu-alta">Alta</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="subsection">
+            <div class="subsection-title">💰 Rol: Cajero</div>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>ID</th><th>Historia de Usuario</th><th>Criterios de Aceptación</th><th>Prioridad</th></tr></thead>
+                    <tbody>
+                        <tr><td>HU-12</td><td><strong>Como</strong> cajero, <strong>quiero</strong> ver cuentas pendientes y registrar el pago, <strong>para</strong> cerrar la mesa y registrar la venta.</td><td>• Listar pedidos ENTREGADO<br>• Detalle y total de la cuenta<br>• Botón "Registrar Pago" → PAGADO<br>• Mesa se libera automáticamente</td><td><span class="hu-badge hu-alta">Alta</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- 10. BASE DE DATOS -->
+    <!-- ============================================ -->
+    <section class="section reveal" id="database">
+        <div class="section-header">
+            <div class="section-number">10</div>
+            <h2>Tablas de Base de Datos — MySQL</h2>
+        </div>
+
+        <div class="subsection">
+            <div class="subsection-title">📊 Diagrama Entidad-Relación</div>
+            <div class="er-grid">
+                <div class="entity-card">
+                    <div class="entity-header h-blue">👤 usuario</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="field-name">id <span class="badge-pk">PK</span></span><span class="field-type">BIGINT</span></div>
+                        <div class="entity-field"><span class="field-name">nombre</span><span class="field-type">VARCHAR(100)</span></div>
+                        <div class="entity-field"><span class="field-name">apellido</span><span class="field-type">VARCHAR(100)</span></div>
+                        <div class="entity-field"><span class="field-name">email <span class="badge-uk">UK</span></span><span class="field-type">VARCHAR(150)</span></div>
+                        <div class="entity-field"><span class="field-name">password</span><span class="field-type">VARCHAR(255)</span></div>
+                        <div class="entity-field"><span class="field-name">rol</span><span class="field-type">ENUM</span></div>
+                        <div class="entity-field"><span class="field-name">activo</span><span class="field-type">BOOLEAN</span></div>
+                        <div class="entity-field"><span class="field-name">created_at</span><span class="field-type">DATETIME</span></div>
+                        <div class="entity-field"><span class="field-name">updated_at</span><span class="field-type">DATETIME</span></div>
+                    </div>
+                </div>
+                <div class="entity-card">
+                    <div class="entity-header h-purple">📂 categoria</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="field-name">id <span class="badge-pk">PK</span></span><span class="field-type">BIGINT</span></div>
+                        <div class="entity-field"><span class="field-name">nombre <span class="badge-uk">UK</span></span><span class="field-type">VARCHAR(100)</span></div>
+                        <div class="entity-field"><span class="field-name">descripcion</span><span class="field-type">VARCHAR(255)</span></div>
+                        <div class="entity-field"><span class="field-name">activa</span><span class="field-type">BOOLEAN</span></div>
+                        <div class="entity-field"><span class="field-name">created_at</span><span class="field-type">DATETIME</span></div>
+                    </div>
+                </div>
+                <div class="entity-card">
+                    <div class="entity-header h-cyan">🍕 plato</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="field-name">id <span class="badge-pk">PK</span></span><span class="field-type">BIGINT</span></div>
+                        <div class="entity-field"><span class="field-name">nombre</span><span class="field-type">VARCHAR(150)</span></div>
+                        <div class="entity-field"><span class="field-name">descripcion</span><span class="field-type">TEXT</span></div>
+                        <div class="entity-field"><span class="field-name">precio</span><span class="field-type">DECIMAL(10,2)</span></div>
+                        <div class="entity-field"><span class="field-name">imagen_url</span><span class="field-type">VARCHAR(500)</span></div>
+                        <div class="entity-field"><span class="field-name">disponible</span><span class="field-type">BOOLEAN</span></div>
+                        <div class="entity-field"><span class="field-name">categoria_id <span class="badge-fk">FK</span></span><span class="field-type">BIGINT</span></div>
+                        <div class="entity-field"><span class="field-name">created_at</span><span class="field-type">DATETIME</span></div>
+                        <div class="entity-field"><span class="field-name">updated_at</span><span class="field-type">DATETIME</span></div>
+                    </div>
+                </div>
+                <div class="entity-card">
+                    <div class="entity-header h-emerald">🪑 mesa</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="field-name">id <span class="badge-pk">PK</span></span><span class="field-type">BIGINT</span></div>
+                        <div class="entity-field"><span class="field-name">numero <span class="badge-uk">UK</span></span><span class="field-type">INT</span></div>
+                        <div class="entity-field"><span class="field-name">capacidad</span><span class="field-type">INT</span></div>
+                        <div class="entity-field"><span class="field-name">ubicacion</span><span class="field-type">VARCHAR(100)</span></div>
+                        <div class="entity-field"><span class="field-name">estado</span><span class="field-type">ENUM</span></div>
+                        <div class="entity-field"><span class="field-name">created_at</span><span class="field-type">DATETIME</span></div>
+                    </div>
+                </div>
+                <div class="entity-card">
+                    <div class="entity-header h-amber">📋 pedido</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="field-name">id <span class="badge-pk">PK</span></span><span class="field-type">BIGINT</span></div>
+                        <div class="entity-field"><span class="field-name">mesa_id <span class="badge-fk">FK</span></span><span class="field-type">BIGINT</span></div>
+                        <div class="entity-field"><span class="field-name">mesero_id <span class="badge-fk">FK</span></span><span class="field-type">BIGINT</span></div>
+                        <div class="entity-field"><span class="field-name">estado</span><span class="field-type">ENUM</span></div>
+                        <div class="entity-field"><span class="field-name">total</span><span class="field-type">DECIMAL(10,2)</span></div>
+                        <div class="entity-field"><span class="field-name">observaciones</span><span class="field-type">TEXT</span></div>
+                        <div class="entity-field"><span class="field-name">fecha_creacion</span><span class="field-type">DATETIME</span></div>
+                        <div class="entity-field"><span class="field-name">fecha_cierre</span><span class="field-type">DATETIME</span></div>
+                    </div>
+                </div>
+                <div class="entity-card">
+                    <div class="entity-header h-rose">📝 detalle_pedido</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="field-name">id <span class="badge-pk">PK</span></span><span class="field-type">BIGINT</span></div>
+                        <div class="entity-field"><span class="field-name">pedido_id <span class="badge-fk">FK</span></span><span class="field-type">BIGINT</span></div>
+                        <div class="entity-field"><span class="field-name">plato_id <span class="badge-fk">FK</span></span><span class="field-type">BIGINT</span></div>
+                        <div class="entity-field"><span class="field-name">cantidad</span><span class="field-type">INT</span></div>
+                        <div class="entity-field"><span class="field-name">precio_unitario</span><span class="field-type">DECIMAL(10,2)</span></div>
+                        <div class="entity-field"><span class="field-name">subtotal</span><span class="field-type">DECIMAL(10,2)</span></div>
+                        <div class="entity-field"><span class="field-name">notas</span><span class="field-type">VARCHAR(255)</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-block" style="margin-bottom:20px">
+            <h3>🔗 Relaciones</h3>
+            <p>• <strong>categoria</strong> → plato (1:N) &nbsp; • <strong>mesa</strong> → pedido (1:N) &nbsp; • <strong>usuario</strong> → pedido (1:N) &nbsp; • <strong>pedido</strong> → detalle_pedido (1:N) &nbsp; • <strong>plato</strong> → detalle_pedido (1:N)</p>
+        </div>
+
+        <div class="subsection">
+            <div class="subsection-title">💾 Script DDL — MySQL</div>
+            <div class="code-block">
+                <div class="code-header">🐬 restaurante_db.sql</div>
+                <pre><span class="comment">-- ============================================</span>
+<span class="comment">-- BASE DE DATOS: SISTEMA DE GESTIÓN DE RESTAURANTE</span>
+<span class="comment">-- Motor: MySQL 8  |  Fecha: Septiembre 2026</span>
+<span class="comment">-- ============================================</span>
+
+<span class="keyword">CREATE DATABASE IF NOT EXISTS</span> <span class="function">restaurante_db</span>
+<span class="keyword">CHARACTER SET</span> utf8mb4 <span class="keyword">COLLATE</span> utf8mb4_unicode_ci;
+
+<span class="keyword">USE</span> restaurante_db;
+
+<span class="comment">-- TABLA: usuario</span>
+<span class="keyword">CREATE TABLE</span> <span class="function">usuario</span> (
+    id            <span class="type">BIGINT AUTO_INCREMENT PRIMARY KEY</span>,
+    nombre        <span class="type">VARCHAR(100)</span>    <span class="keyword">NOT NULL</span>,
+    apellido      <span class="type">VARCHAR(100)</span>    <span class="keyword">NOT NULL</span>,
+    email         <span class="type">VARCHAR(150)</span>    <span class="keyword">NOT NULL UNIQUE</span>,
+    password      <span class="type">VARCHAR(255)</span>    <span class="keyword">NOT NULL</span>,
+    rol           <span class="type">ENUM</span>(<span class="string">'ADMIN'</span>,<span class="string">'MESERO'</span>,<span class="string">'COCINERO'</span>,<span class="string">'CAJERO'</span>) <span class="keyword">NOT NULL DEFAULT</span> <span class="string">'MESERO'</span>,
+    activo        <span class="type">BOOLEAN</span>         <span class="keyword">NOT NULL DEFAULT TRUE</span>,
+    created_at    <span class="type">DATETIME</span>        <span class="keyword">DEFAULT CURRENT_TIMESTAMP</span>,
+    updated_at    <span class="type">DATETIME</span>        <span class="keyword">DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP</span>
+) <span class="keyword">ENGINE</span>=InnoDB;
+
+<span class="comment">-- TABLA: categoria</span>
+<span class="keyword">CREATE TABLE</span> <span class="function">categoria</span> (
+    id            <span class="type">BIGINT AUTO_INCREMENT PRIMARY KEY</span>,
+    nombre        <span class="type">VARCHAR(100)</span>    <span class="keyword">NOT NULL UNIQUE</span>,
+    descripcion   <span class="type">VARCHAR(255)</span>    <span class="keyword">NULL</span>,
+    activa        <span class="type">BOOLEAN</span>         <span class="keyword">NOT NULL DEFAULT TRUE</span>,
+    created_at    <span class="type">DATETIME</span>        <span class="keyword">DEFAULT CURRENT_TIMESTAMP</span>
+) <span class="keyword">ENGINE</span>=InnoDB;
+
+<span class="comment">-- TABLA: plato</span>
+<span class="keyword">CREATE TABLE</span> <span class="function">plato</span> (
+    id            <span class="type">BIGINT AUTO_INCREMENT PRIMARY KEY</span>,
+    nombre        <span class="type">VARCHAR(150)</span>    <span class="keyword">NOT NULL</span>,
+    descripcion   <span class="type">TEXT</span>            <span class="keyword">NULL</span>,
+    precio        <span class="type">DECIMAL(10,2)</span>   <span class="keyword">NOT NULL CHECK</span> (precio > 0),
+    imagen_url    <span class="type">VARCHAR(500)</span>    <span class="keyword">NULL</span>,
+    disponible    <span class="type">BOOLEAN</span>         <span class="keyword">NOT NULL DEFAULT TRUE</span>,
+    categoria_id  <span class="type">BIGINT</span>          <span class="keyword">NOT NULL</span>,
+    created_at    <span class="type">DATETIME</span>        <span class="keyword">DEFAULT CURRENT_TIMESTAMP</span>,
+    updated_at    <span class="type">DATETIME</span>        <span class="keyword">DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP</span>,
+    <span class="keyword">FOREIGN KEY</span> (categoria_id) <span class="keyword">REFERENCES</span> categoria(id)
+) <span class="keyword">ENGINE</span>=InnoDB;
+
+<span class="comment">-- TABLA: mesa</span>
+<span class="keyword">CREATE TABLE</span> <span class="function">mesa</span> (
+    id            <span class="type">BIGINT AUTO_INCREMENT PRIMARY KEY</span>,
+    numero        <span class="type">INT</span>             <span class="keyword">NOT NULL UNIQUE</span>,
+    capacidad     <span class="type">INT</span>             <span class="keyword">NOT NULL CHECK</span> (capacidad > 0),
+    ubicacion     <span class="type">VARCHAR(100)</span>    <span class="keyword">NULL</span>,
+    estado        <span class="type">ENUM</span>(<span class="string">'DISPONIBLE'</span>,<span class="string">'OCUPADA'</span>,<span class="string">'RESERVADA'</span>) <span class="keyword">DEFAULT</span> <span class="string">'DISPONIBLE'</span>,
+    created_at    <span class="type">DATETIME</span>        <span class="keyword">DEFAULT CURRENT_TIMESTAMP</span>
+) <span class="keyword">ENGINE</span>=InnoDB;
+
+<span class="comment">-- TABLA: pedido</span>
+<span class="keyword">CREATE TABLE</span> <span class="function">pedido</span> (
+    id              <span class="type">BIGINT AUTO_INCREMENT PRIMARY KEY</span>,
+    mesa_id         <span class="type">BIGINT</span>          <span class="keyword">NOT NULL</span>,
+    mesero_id       <span class="type">BIGINT</span>          <span class="keyword">NOT NULL</span>,
+    estado          <span class="type">ENUM</span>(<span class="string">'PENDIENTE'</span>,<span class="string">'EN_PREPARACION'</span>,<span class="string">'LISTO'</span>,<span class="string">'ENTREGADO'</span>,<span class="string">'PAGADO'</span>,<span class="string">'CANCELADO'</span>)
+                                    <span class="keyword">DEFAULT</span> <span class="string">'PENDIENTE'</span>,
+    total           <span class="type">DECIMAL(10,2)</span>   <span class="keyword">DEFAULT</span> 0.00,
+    observaciones   <span class="type">TEXT</span>            <span class="keyword">NULL</span>,
+    fecha_creacion  <span class="type">DATETIME</span>        <span class="keyword">DEFAULT CURRENT_TIMESTAMP</span>,
+    fecha_cierre    <span class="type">DATETIME</span>        <span class="keyword">NULL</span>,
+    <span class="keyword">FOREIGN KEY</span> (mesa_id) <span class="keyword">REFERENCES</span> mesa(id),
+    <span class="keyword">FOREIGN KEY</span> (mesero_id) <span class="keyword">REFERENCES</span> usuario(id)
+) <span class="keyword">ENGINE</span>=InnoDB;
+
+<span class="comment">-- TABLA: detalle_pedido</span>
+<span class="keyword">CREATE TABLE</span> <span class="function">detalle_pedido</span> (
+    id              <span class="type">BIGINT AUTO_INCREMENT PRIMARY KEY</span>,
+    pedido_id       <span class="type">BIGINT</span>          <span class="keyword">NOT NULL</span>,
+    plato_id        <span class="type">BIGINT</span>          <span class="keyword">NOT NULL</span>,
+    cantidad        <span class="type">INT</span>             <span class="keyword">NOT NULL CHECK</span> (cantidad > 0),
+    precio_unitario <span class="type">DECIMAL(10,2)</span>   <span class="keyword">NOT NULL</span>,
+    subtotal        <span class="type">DECIMAL(10,2)</span>   <span class="keyword">NOT NULL</span>,
+    notas           <span class="type">VARCHAR(255)</span>    <span class="keyword">NULL</span>,
+    <span class="keyword">FOREIGN KEY</span> (pedido_id) <span class="keyword">REFERENCES</span> pedido(id) <span class="keyword">ON DELETE CASCADE</span>,
+    <span class="keyword">FOREIGN KEY</span> (plato_id) <span class="keyword">REFERENCES</span> plato(id)
+) <span class="keyword">ENGINE</span>=InnoDB;
+
+<span class="comment">-- ============================================</span>
+<span class="comment">-- DATOS INICIALES</span>
+<span class="comment">-- ============================================</span>
+
+<span class="keyword">INSERT INTO</span> usuario (nombre, apellido, email, password, rol)
+<span class="keyword">VALUES</span> (<span class="string">'Admin'</span>, <span class="string">'Sistema'</span>, <span class="string">'admin@elbuensabor.pe'</span>,
+        <span class="string">'$2a$10$N9qo8uLOickgx2ZMRZoMye...'</span>, <span class="string">'ADMIN'</span>);
+
+<span class="keyword">INSERT INTO</span> categoria (nombre, descripcion) <span class="keyword">VALUES</span>
+(<span class="string">'Entradas'</span>,        <span class="string">'Platos de entrada y aperitivos'</span>),
+(<span class="string">'Platos de Fondo'</span>, <span class="string">'Platos principales'</span>),
+(<span class="string">'Bebidas'</span>,         <span class="string">'Refrescos, jugos y cocteles'</span>),
+(<span class="string">'Postres'</span>,         <span class="string">'Dulces y postres de la casa'</span>);
+
+<span class="keyword">INSERT INTO</span> mesa (numero, capacidad, ubicacion) <span class="keyword">VALUES</span>
+(1,4,<span class="string">'Salón principal'</span>),(2,4,<span class="string">'Salón principal'</span>),(3,2,<span class="string">'Salón principal'</span>),
+(4,6,<span class="string">'Salón principal'</span>),(5,2,<span class="string">'Salón principal'</span>),(6,4,<span class="string">'Salón principal'</span>),
+(7,4,<span class="string">'Terraza'</span>),(8,2,<span class="string">'Terraza'</span>),(9,8,<span class="string">'Terraza'</span>),(10,8,<span class="string">'Terraza'</span>);
+
+<span class="keyword">INSERT INTO</span> plato (nombre, descripcion, precio, disponible, categoria_id) <span class="keyword">VALUES</span>
+(<span class="string">'Papa a la Huancaína'</span>,<span class="string">'Papa con crema de ají'</span>,18.00,TRUE,1),
+(<span class="string">'Ceviche Clásico'</span>,<span class="string">'Pescado en limón con cebolla'</span>,38.00,TRUE,1),
+(<span class="string">'Lomo Saltado'</span>,<span class="string">'Lomo con cebolla y papas'</span>,35.00,TRUE,2),
+(<span class="string">'Ají de Gallina'</span>,<span class="string">'Pollo en crema de ají'</span>,28.00,TRUE,2),
+(<span class="string">'Arroz con Mariscos'</span>,<span class="string">'Arroz con mariscos variados'</span>,42.00,TRUE,2),
+(<span class="string">'Chicha Morada'</span>,<span class="string">'Bebida de maíz morado'</span>,8.00,TRUE,3),
+(<span class="string">'Pisco Sour'</span>,<span class="string">'Coctel clásico peruano'</span>,22.00,TRUE,3),
+(<span class="string">'Suspiro a la Limeña'</span>,<span class="string">'Manjar con merengue'</span>,15.00,TRUE,4);</pre>
+            </div>
+        </div>
+
+        <div class="subsection">
+            <div class="subsection-title">📋 Resumen de Tablas</div>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>Tabla</th><th>Campos</th><th>Relaciones</th><th>Descripción</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>usuario</strong></td><td>9</td><td>→ pedido (1:N)</td><td>Empleados con roles y credenciales</td></tr>
+                        <tr><td><strong>categoria</strong></td><td>5</td><td>→ plato (1:N)</td><td>Categorías de la carta</td></tr>
+                        <tr><td><strong>plato</strong></td><td>9</td><td>→ detalle_pedido (1:N)</td><td>Platos con precio e imagen</td></tr>
+                        <tr><td><strong>mesa</strong></td><td>6</td><td>→ pedido (1:N)</td><td>Mesas con estado y capacidad</td></tr>
+                        <tr><td><strong>pedido</strong></td><td>8</td><td>→ detalle_pedido (1:N)</td><td>Pedidos con estado y mesa</td></tr>
+                        <tr><td><strong>detalle_pedido</strong></td><td>7</td><td>—</td><td>Ítems de cada pedido</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<footer class="footer">
+    <p>🍽️ Sistema de Gestión de Restaurante — T1 Primer Avance — Septiembre 2026</p>
+    <p style="margin-top:6px">Spring Boot · Angular · MySQL · JWT &nbsp;|&nbsp; <a href="index.html">← Plan de Implementación</a></p>
+</footer>
+
+<script>
+    mermaid.initialize({ startOnLoad: true, theme: 'dark', themeVariables: { primaryColor: '#3b82f6', primaryTextColor: '#e2e8f0', primaryBorderColor: '#3b82f6', lineColor: '#64748b', secondaryColor: '#1e1b4b', tertiaryColor: '#1a2035', fontSize: '14px' }});
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => navbar.classList.toggle('scrolled', window.scrollY > 20));
+    const obs = new IntersectionObserver(e => e.forEach(el => { if(el.isIntersecting) el.target.classList.add('visible'); }), { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
